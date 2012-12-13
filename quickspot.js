@@ -128,8 +128,7 @@
 		methods.handleKeyUp = function(event){
 			var key = event.keyCode;
 			//prevent default action
-			if(key==13||key==38||key==40) event.preventDefault();
-
+			
 			if(key==13){ //enter
 				methods.handleSelection(here.results[here.selectedIndex]);
 			}
@@ -139,6 +138,14 @@
 			if(key == 40){ // down
 				methods.selectIndex(here.selectedIndex+1);
 			} 	
+
+			if(key==13||key==38||key==40){
+				if (event.preventDefault) { 
+				    event.preventDefault(); 
+				} else {
+				    event.returnValue = false;
+				}
+			} 
 		}
 
 		/**
@@ -166,7 +173,7 @@
 	 	 */
 		methods.selectIndex = function(idx){
 			//ensure valid range
-			if(idx > here.results.length){
+			if(idx >= here.results.length){
 				here.selectedIndex = here.results.length-1;
 			}else if(idx < 0){
 				here.selectedIndex = 0;
@@ -360,3 +367,14 @@
  	}
 	
 }).call({});
+
+//Compatability layer
+
+//forEach shim for IE8<
+if (!('forEach' in Array.prototype)) {
+    Array.prototype.forEach= function(action, that /*opt*/) {
+        for (var i= 0, n= this.length; i<n; i++)
+            if (i in this)
+                action.call(that, this[i], i, this);
+    };
+}
