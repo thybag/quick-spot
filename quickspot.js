@@ -79,7 +79,7 @@
 	 	methods.findResultsFor = function(search){
 
 	 		//dont search on blank
-	 		if(search!=''){
+	 		if(search == ''){
  				//show nothing if no value
  				here.results = [];
  				here.dom.style.display = 'none';
@@ -128,7 +128,7 @@
 		methods.handleKeyUp = function(event){
 			var key = event.keyCode;
 			//prevent default action
-			event.preventDefault();
+			if(key==13||key==38||key==40) event.preventDefault();
 
 			if(key==13){ //enter
 				methods.handleSelection(here.results[here.selectedIndex]);
@@ -319,7 +319,6 @@
 		try {var xmlhttp = window.XMLHttpRequest?new XMLHttpRequest(): new ActiveXObject("Microsoft.XMLHTTP");}  catch (e) { }
 		xmlhttp.onreadystatechange = function(){
 			if ((xmlhttp.readyState == 4) && (xmlhttp.status == 200)) {
-				console.log("bk");
 				callback(xmlhttp.responseText);
 			}
 		}
