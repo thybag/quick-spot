@@ -58,7 +58,7 @@
 	 	methods.findResultsFor = function(search){
 	 		//dont redosearch if it hasnt changed
 	 		if(here.lastValue==search){
-	 			here.dom.style.display = 'block';
+	 			if(search!='')here.dom.style.display = 'block';
 	 			return;
 	 		}
 	 		here.lastValue=search;
@@ -119,8 +119,8 @@
 				here.selectedIndex = idx;
 			}
 			//Unselect old value, select new value
-			util.removeClass(document.querySelector('.quickspot-result.selected'),'selected');
-			util.addClass(document.querySelector('.quickspot-result-'+here.selectedIndex),'selected');
+			util.removeClass(here.dom.querySelector('.quickspot-result.selected'),'selected');
+			util.addClass(here.dom.querySelector('.quickspot-result-'+here.selectedIndex),'selected');
 		}
 		//draw results to screen
 		methods.render_results = function(results){
