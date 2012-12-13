@@ -9,6 +9,10 @@
  	this.target = null;
  	this.dom = null;
  	this.options = [];
+ 	this.selectedIndex = 0;
+ 	this.results = [];
+ 	this.lastValue = '';
+
  	var here = this;
 
  	this.attach = function(options){
@@ -34,6 +38,7 @@
 	 		here.dom = document.createElement('div');
 	 		here.dom.className='quickspot-results';
 	 		here.dom.setAttribute("tabindex","100");
+	 		here.dom.style.display = 'none';
 	 		here.target.parentNode.appendChild(here.dom);
 
 	 		//Attach listeners
@@ -42,6 +47,7 @@
 	 		methods.addListener(here.target, 	'focus', methods.handleFocus);
 	 		methods.addListener(here.target, 	'blur', methods.handleBlur);
 	 		methods.addListener(here.dom, 		'blur', methods.handleBlur);
+	 		methods.addListener(here.dom, 		'blur', methods.handleKeyUp);
  		});
  	}
 
@@ -49,10 +55,16 @@
  	var methods = {};
  	//Search using the provided term & display results
  	methods.findResultsFor = function(search){
+ 		//dont redosearch if it hasnt changed
+ 		if(here.lastValue==search) return;
+ 		here.lastValue=search;
+ 		//make selected index 0 again
+ 		this.selectedIndex = 0;
  		if(search != ''){
- 			var results = methods.findMatches(here.target.value);
-			methods.render_results(results);
+ 			here.results = methods.findMatches(here.target.value);
+			methods.render_results(here.results);
  		}else{
+ 			here.results = [];
  			//show nothing if no value
  			here.dom.style.display = 'none';
  		}
@@ -65,6 +77,19 @@
 		methods.findResultsFor(here.target.value);
 	}
 	methods.handleKeyUp = function(event){
+		var key = event.keyCode;
+		if(key==13){
+			event.preventDefault();
+			methods.handleClick(here.results[here.selectedIndex]);
+		}
+		if(key == 38){
+			event.preventDefault();
+			methods.selectIndex(here.selectedIndex-1);
+		}
+		if(key == 40){
+			event.preventDefault();
+			methods.selectIndex(here.selectedIndex+1);
+		} 	
 	}
 	methods.handleBlur = function(event){
 
@@ -79,7 +104,20 @@
 			}
 		},150);
 	}
-	
+
+	methods.selectIndex = function(idx){
+		//ensure valid range
+		if(idx > here.results.length){
+			here.selectedIndex = here.results.length-1;
+		}else if(idx < 0){
+			here.selectedIndex = 0;
+		}else{
+			here.selectedIndex = idx;
+		}
+		//Unselect old value, select new value
+		methods.removeClass(document.querySelector('.quickspot-result.selected'),'selected');
+		methods.addClass(document.querySelector('.quickspot-result-'+here.selectedIndex),'selected');
+	}
 	//draw results to screen
 	methods.render_results = function(results){
 
@@ -93,13 +131,16 @@
 		var fragment =  document.createDocumentFragment();
 		var tmp; //reuse object for more speed
 
-		results.forEach(function(result){
+		results.forEach(function(result, idx){
 			tmp = document.createElement('a');
 			tmp.innerHTML = result.name;
-			tmp.className = 'quickspot-result'
+			tmp.className = 'quickspot-result quickspot-result-'+idx;
 			//attach click handler
 			methods.addListener(tmp, 'click', function(event){ 
 				methods.handleClick(result);
+			});
+			methods.addListener(tmp, 'mouseover', function(event){ 
+				methods.selectIndex(idx);
 			});
 			fragment.appendChild(tmp);
 		});
@@ -109,10 +150,24 @@
 		//Add new
 		here.dom.style.display = 'block';
 		here.dom.appendChild(fragment);
-	}
 
+		//select inital value
+		methods.selectIndex(this.selectedIndex);
+	}
+	//Handle item selection
 	methods.handleClick = function(result){
-		console.log(result);
+		//If custom handler was provided
+		if(typeof here.options.clickhandler != 'undefined'){
+			here.options.clickhandler(result);
+		}else{
+			if(typeof result.url != 'undefined'){
+				 window.location = url;
+			}else{
+				console.log("Url not specified in JSON. Please provude a clickhandler in the setup if you wish to use custom routing");
+				console.log(result);
+			}
+		}
+		
 	}
 
 	//find objects in json that match search results
@@ -168,6 +223,19 @@
 	methods.addListener = function(obj, event, callback){
 		//Proper way vs IE way
 		if(window.addEventListener){obj.addEventListener(event, callback, false);}else{obj.attachEvent('on'+event, callback);}
+	}
+	methods.addClass = function(node,nclass){
+		if(!methods.hasClass(node,nclass)){
+			node.className = node.className+' '+nclass;
+		}
+	}
+	methods.removeClass = function(node,nclass){
+		if(node===null)return;
+		node.className = node.className.replace(new RegExp('(^|\\s)'+nclass+'(\\s|$)'),'');
+		return;
+	}
+	methods.hasClass = function(node, nclass){
+		return (node.className.match(new RegExp('(^|\\s)'+nclass+'(\\s|$)')) != null);
 	}
 
 

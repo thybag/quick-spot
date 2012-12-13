@@ -16,22 +16,25 @@
 			    	 margin: 20px 0;
 			    }
 			    .quickspot-results {
-			    	width:225px;
+			    	width:300px;
 			    	background:#fff;
 			    	position:absolute;
-			    	max-height:400px;
+			    	max-height:380px;
 			    	overflow:auto;
-			    	border:solid 1px;
+			    	border:solid 1px #08c;
+			    	border-radius: 4px;
+			    	border-top-left-radius: 0px;
 			    }
 			    .quickspot-results .quickspot-result {
-			    	padding:4px;
+			    	padding:8px 10px;
 			    	display:block;
 			    	text-decoration: none;
+			    	cursor:pointer;
 			    	
 			    }
-			    .quickspot-results .quickspot-result:hover{
-
-			    	background:#dedede;
+			    .quickspot-results .quickspot-result.selected{
+			    	background:#08c;
+			    	color:#fff;
 			    }
 			</style>
 			<script type='text/javascript' src='quickspot.js'></script>
