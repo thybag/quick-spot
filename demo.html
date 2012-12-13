@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+			<title>Quick-Spot - A simple high speed JSON search</title>
+
+			<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap.no-icons.min.css" rel="stylesheet">
+			<style>
+				.container-medium {
+					margin: 0 auto;
+        			max-width: 800px;
+				}
+				.container-medium > hr {
+			        margin: 20px 0;
+			    }
+			    .navbar {
+			    	 margin: 20px 0;
+			    }
+			    .quickspot-results {
+			    	width:225px;
+			    	background:#fff;
+			    	position:absolute;
+			    	max-height:400px;
+			    	overflow:auto;
+			    	border:solid 1px;
+			    }
+			    .quickspot-results .quickspot-result {
+			    	padding:4px;
+			    	display:block;
+			    	text-decoration: none;
+			    	
+			    }
+			    .quickspot-results .quickspot-result:hover{
+
+			    	background:#dedede;
+			    }
+			</style>
+			<script type='text/javascript' src='quickspot.js'></script>
+			<script type='text/javascript'>
+
+				quickspot.attach({"url":"demo.json", "target":"searchbox"});
+
+			</script>
+	</head>
+	<body>
+		<div class="container-medium">
+				<div class="masthead">
+		        	<ul class="nav nav-pills pull-right">
+				          <li class="active"><a href="#">Home</a></li>
+				          <li><a href="#">Github</a></li>
+		        	</ul>
+		        <h3 class="muted">Quick Spot Demo</h3>
+		      </div>
+		      <hr>
+
+		      <div class=" navbar  navbar-inverse">
+		      	<div class="navbar-inner">
+			      	<div class='search_bar'>
+			      		<div class="navbar-form pull-left">
+							<input type='text' id='searchbox' placeholder='Try me...' />
+						</div>
+					</div>
+				</div>
+			</div>
+				
+					
+				
+			</div>
+		</div>
+	</body>
+</html>
