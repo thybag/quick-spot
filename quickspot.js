@@ -181,8 +181,8 @@
 				here.selectedIndex = idx;
 			}
 			//Un select old value, select new value in UI.
-			util.removeClass(here.dom.querySelector('.quickspot-result.selected'),'selected');
-			util.addClass(here.dom.querySelector('.quickspot-result-'+here.selectedIndex),'selected');
+			util.removeClass(util.cssSelect(here.dom, '.quickspot-result.selected') ,'selected');
+			util.addClass(util.cssSelect(here.dom, '.quickspot-result-'+here.selectedIndex),'selected');
 		}
 
 		/**
@@ -341,19 +341,36 @@
 	}
 	//Add a CSS class to a DOM element
 	util.addClass = function(node,nclass){
+		if(node==null) return;
 		if(!util.hasClass(node,nclass)){
 			node.className = node.className+' '+nclass;
 		}
 	}
 	//Remove a CSS class from a dom element
-	util.removeClass = function(node,nclass){
-		if(node===null)return;
+	util.removeClass = function(node, nclass){
+		if(node==null) return;
 		node.className = node.className.replace(new RegExp('(^|\\s)'+nclass+'(\\s|$)'),'');
 		return;
 	}
 	// Find out if a DOM element has a CSS class
 	util.hasClass = function(node, nclass){
+		if(node==null) return;
 		return (node.className.match(new RegExp('(^|\\s)'+nclass+'(\\s|$)')) != null);
+	}
+	// cssSelect
+	util.cssSelect = function(node, selector){
+		if(document.querySelector){
+			//Fast and easy.
+			return node.querySelector(selector);
+		}else{
+			//Rather than boot an entire shim, why not ask jQuery if it can lend a hand here
+			if (typeof jQuery !== 'undefined'){
+				return $(node).find(selector)[0];
+			}else{
+				//TODO, possibly import sizzle?
+			}
+		}
+
 	}
 
 	//Add ourselves to the outside world / global namespace
@@ -370,11 +387,19 @@
 
 //Compatability layer
 
-//forEach shim for IE8<
+//forEach shim for
 if (!('forEach' in Array.prototype)) {
     Array.prototype.forEach= function(action, that /*opt*/) {
         for (var i= 0, n= this.length; i<n; i++)
             if (i in this)
                 action.call(that, this[i], i, this);
     };
+}
+
+//JSON shim (import cdn copy of json2 if JSON is missing)
+//Don't bother lerverging jquery as its version is sloooooowww (although apparenlty moving to json2)
+if(typeof JSON == 'undefined'){
+	var json2 = document.createElement('script');
+	json2.src = 'http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js';
+	document.getElementsByTagName('head')[0].appendChild(json2);
 }
