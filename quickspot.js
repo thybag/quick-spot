@@ -28,6 +28,7 @@
 	 	 * @param option.url url of JSON feed to search with
 		 *
 	 	 * Optional
+	 	 * @param option.displayname name of attribute to display in box (name used by default)
 	 	 * @param options.clickhandler Callback method, is passed the selected item.
 	 	 * @param options.searchwith, array of attributes to search on (TODO!)
 	 	 *
@@ -47,6 +48,10 @@
 	 		if(!here.target){
 	 			console.log("Target ID could not be found");
 	 			return;
+	 		}
+
+	 		if(!options.displaname){
+	 			options.displaname = 'name';
 	 		}
 
 	 		//Load data
@@ -207,7 +212,7 @@
 				//Create new a element
 				tmp = document.createElement('a');
 				//Set name/title
-				tmp.innerHTML = result.name;
+				tmp.innerHTML = result[here.options.displaname];
 				//Apply classes
 				tmp.className = 'quickspot-result quickspot-result-'+idx;
 
@@ -252,7 +257,7 @@
 					window.location = url;
 				}else{
 					//else assume we are just a typeahead?
-					here.target.value = result.name;
+					here.target.value = result[here.options.displaname];
 					here.dom.style.display = 'none';
 				}
 			}
