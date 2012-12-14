@@ -419,3 +419,8 @@ if(typeof JSON == 'undefined'){
 	json2.src = 'http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js';
 	document.getElementsByTagName('head')[0].appendChild(json2);
 }
+
+//suppress console for IE.
+if(typeof console == 'undefined'){
+	window.console = {"log":function(x){}};
+}
