@@ -326,9 +326,8 @@
 				//lower case everything
 				data[i]._searchvalues = tmp.toLowerCase();
 			}
-			//Store in memoory
+			//Store in memory
 			here.data_store = data
-			console.log(here.data_store);
 		}
  	}
  	
