@@ -29,6 +29,7 @@
 		 *
 	 	 * Optional
 	 	 * @param option.displayname name of attribute to display in box (name used by default)
+	 	 * @param option.displayhandler overwrites defualt display method.
 	 	 * @param options.clickhandler Callback method, is passed the selected item.
 	 	 * @param options.searchwith, array of attributes to search on (will use all if not specified)
 	 	 *
@@ -212,7 +213,12 @@
 				//Create new a element
 				tmp = document.createElement('a');
 				//Set name/title
-				tmp.innerHTML = result[here.options.displaname];
+				if(typeof here.options.displayhandler != 'undefined'){
+					tmp.innerHTML = here.options.displayhandler(result);
+				}else{
+					tmp.innerHTML = result[here.options.displaname];
+				}
+				
 				//Apply classes
 				tmp.className = 'quickspot-result quickspot-result-'+idx;
 
