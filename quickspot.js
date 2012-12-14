@@ -30,7 +30,7 @@
 	 	 * Optional
 	 	 * @param option.displayname name of attribute to display in box (name used by default)
 	 	 * @param options.clickhandler Callback method, is passed the selected item.
-	 	 * @param options.searchwith, array of attributes to search on (TODO!)
+	 	 * @param options.searchwith, array of attributes to search on (will use all if not specified)
 	 	 *
 	 	 */
 	 	this.attach = function(options){
