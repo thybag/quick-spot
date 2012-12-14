@@ -305,18 +305,30 @@
 
 			// Loop through searchable items, adding all values that will need to be searched upon in to a
 			// string stored as _searchvalues. Either add everything or just what the user specifies.
-			var tmp;
+			var tmp, attrs;
 			for(var i=0; i < data.length; i++){
 				tmp = '';
-				//Add everything for now, can confgure via options later
-				for(var a in data[i]){
-					tmp += ' '+data[i][a]
+				//if searchwith exists use th as attributes list, else just use all of them
+
+				if(typeof here.options.searchwith != 'undefined'){
+					//grab only the attributes we want to search on
+					attrs = here.options.searchwith;
+					for(var c=0; c<attrs.length;c++){
+						tmp += ' '+data[i][attrs[c]];
+					}
+
+				}else{
+					//just grab all the attribuites 
+					for(var a in data[i]){
+						tmp += ' '+data[i][a]
+					}
 				}
 				//lower case everything
 				data[i]._searchvalues = tmp.toLowerCase();
 			}
 			//Store in memoory
 			here.data_store = data
+			console.log(here.data_store);
 		}
  	}
  	
