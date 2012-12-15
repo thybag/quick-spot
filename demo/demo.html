@@ -16,7 +16,7 @@
 			    	 margin: 20px 0;
 			    }
 			    .quickspot-results {
-			    	width:300px;
+			    	width:340px;
 			    	background:#fff;
 			    	position:absolute;
 			    	max-height:380px;
@@ -40,9 +40,91 @@
 
 			<script type='text/javascript' src='../quickspot.js'></script>
 			<script type='text/javascript'>
+				//Note: this is sample data, ucas codes & other attributes just randomly made up
+				var test_data = [	
+					{
+						"ucas": 		"UK89801",
+						"name":			"Financial Economics",
+						"award"	:		"BSc (Hons)",
+						"subject": 		"Economics",
+						"keywords": ""
+					},
+					{
+						"ucas": 		"UK32201",
+						"name":			"Accounting, Finance and Economics",
+						"award"	:		"BA (Hons)",
+						"subject": 		"Accounting and Finance",
+						"keywords": ""
+					},
+					{
+						"ucas": 		"UK76521",
+						"name":			"Computer Science",
+						"award"	:		"BSc (Hons)",
+						"subject": 		"Computing",
+						"keywords":		"infomatics"
+					},
+						{
+						"ucas": 		"UK76523",
+						"name":			"Computer Science with a year in indusrty",
+						"award"	:		"BSc (Hons)",
+						"subject": 		"Computing",
+						"keywords":		"infomatics"
+					},
+					{
+						"ucas": 		"UK00921",
+						"name":			"Actuarial Science",
+						"award"	:		"BSc (Hons)",
+						"subject": 		"Actuarial Science",
+						"keywords": ""
+					},
+					{
+						"ucas": 		"UK11221",
+						"name":			"Accounting and Management",
+						"award"	:		"BA (Hons)",
+						"subject": 		"Accounting and Finance",
+						"keywords": ""
+					},
+					{
+						"ucas": 		"UK33321",
+						"name":			"American Studies",
+						"award"	:		"BA (Hons)",
+						"subject": 		"Accounting and Finance",
+						"keywords": ""
+					},
+					{
+						"ucas": 		"UK23621",
+						"name":			"Architecture",
+						"award"	:		"BA (Hons)",
+						"subject": 		"Accounting and Finance",
+						"keywords": ""
+					},
+					{
+						"ucas": 		"UK22321",
+						"name":			"Film studies",
+						"award"	:		"BA (Hons)",
+						"subject": 		"Film",
+						"keywords": ""
+					},
 
+				];
+
+				//Setup the standard quickspot-search
 				quickspot.attach({"url":"demo.json", "target":"searchbox"});
 
+				//setup a slighly altered one
+				quickspot.attach({
+					"data":test_data, 
+					"target":"searchbox2",
+					"displayhandler": function(co){
+						return '<strong>'+co.name+'</strong> - '+co.award
+						+'<br><small>'+co.ucas+' / '+co.subject+'</small>';
+					},
+					"clickhandler": function(co){
+						// You would probably want to do somthing more useful here
+						alert(co.name);
+					}
+
+				});
 			</script>
 	</head>
 	<body>
@@ -56,11 +138,25 @@
 		        </div>
 		        <hr>
 
+		        <h4>Normal usage</h4>
+
 		        <div class=" navbar  navbar-inverse">
 			      	<div class="navbar-inner">
 				      	<div class='search_bar'>
 				      		<div class="navbar-form pull-left">
 								<input type='text' id='searchbox' placeholder='Try me...' />
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<h4>Custom display and alerting results</h4>
+
+				<div class=" navbar  navbar-inverse">
+			      	<div class="navbar-inner">
+				      	<div class='search_bar'>
+				      		<div class="navbar-form pull-right">
+								<input type='text' id='searchbox2' placeholder='Try me...' />
 							</div>
 						</div>
 					</div>
