@@ -450,14 +450,14 @@ if (!('forEach' in Array.prototype)) {
 }
 
 //JSON shim (import cdn copy of json2 if JSON is missing)
-//Don't bother lerverging jquery as its version is sloooooowww (although apparenlty moving to json2)
-if(typeof JSON == 'undefined'){
+//Even if jQuery is avaiable it seems json2 is signifcantly faster, so importing it is worth the time.
+if(typeof JSON === 'undefined'){
 	var json2 = document.createElement('script');
 	json2.src = 'http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js';
 	document.getElementsByTagName('head')[0].appendChild(json2);
 }
 
 //suppress console for IE.
-if(typeof console == 'undefined'){
+if(typeof console === 'undefined'){
 	window.console = {"log":function(x){}};
 }
