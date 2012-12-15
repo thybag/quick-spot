@@ -41,13 +41,13 @@
 
  			//check we have a target!
 	 		if(!options.target){
-	 			console.log("Target not specified");
+	 			console.log("Error: Target not specified");
 	 			return;
 	 		}
 	 		//Get target
 	 		here.target = document.getElementById(options.target);
 	 		if(!here.target){
-	 			console.log("Target ID could not be found");
+	 			console.log("Error: Target ID could not be found");
 	 			return;
 	 		}
 
@@ -55,8 +55,20 @@
 	 			options.displaname = 'name';
 	 		}
 
-	 		//Load data
-	 		util.ajaxGet(options.url, methods.initialise_data);
+	 		//find data
+	 		if(typeof options.url !== 'undefined'){
+	 			//Load data via ajax
+	 			util.ajaxGetJSON(options.url, methods.initialise_data);
+	 		}else if(typeof options.data !== 'undefined'){
+	 			//Import directly provided data
+	 			methods.initialise_data(options.data);
+	 		}else{
+	 			//Warn user if none is provided
+	 			console.log("Error: No datasource provided.");
+	 			return;
+	 		}
+
+	 		
 
 	 		//Setup basic Dom stuff
 	 		here.dom = document.createElement('div');
@@ -262,7 +274,7 @@
 			if(typeof here.options.clickhandler != 'undefined'){
 				here.options.clickhandler(result);
 			}else{
-				if(typeof result.url != 'undefined'){
+				if(typeof result.url !== 'undefined'){
 					//If url was provided, go there
 					window.location = url;
 				}else{
@@ -335,9 +347,6 @@
 		 */
 
 		methods.initialise_data = function(data){
-			//turn JSON in to real JS object
-			var data = JSON.parse(data);
-
 			// Loop through searchable items, adding all values that will need to be searched upon in to a
 			// string stored as __searchvalues. Either add everything or just what the user specifies.
 			var tmp, attrs;
@@ -373,11 +382,12 @@
  	 */
  	var util = {};
  	// Perform an AJAX get of a provided url, and return the result to the specified callback.
-	util.ajaxGet = function(location, callback){
+	util.ajaxGetJSON = function(location, callback){
 		try {var xmlhttp = window.XMLHttpRequest?new XMLHttpRequest(): new ActiveXObject("Microsoft.XMLHTTP");}  catch (e) { }
 		xmlhttp.onreadystatechange = function(){
 			if ((xmlhttp.readyState == 4) && (xmlhttp.status == 200)) {
-				callback(xmlhttp.responseText);
+				//turn JSON in to real JS object & send it to the callback
+				callback(JSON.parse(xmlhttp.responseText));
 			}
 		}
 		xmlhttp.open("GET", location, true);
