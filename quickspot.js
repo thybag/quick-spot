@@ -31,7 +31,7 @@
 	 	 * @param option.displayname name of attribute to display in box (name used by default)
 	 	 * @param option.displayhandler overwrites defualt display method.
 	 	 * @param options.clickhandler Callback method, is passed the selected item.
-	 	 * @param options.searchwith, array of attributes to search on (will use all if not specified)
+	 	 * @param options.searchon, array of attributes to search on (will use all if not specified)
 	 	 *
 	 	 */
 	 	this.attach = function(options){
@@ -67,9 +67,7 @@
 	 			console.log("Error: No datasource provided.");
 	 			return;
 	 		}
-
 	 		
-
 	 		//Setup basic Dom stuff
 	 		here.dom = document.createElement('div');
 	 		here.dom.className='quickspot-results';
@@ -352,11 +350,11 @@
 			var tmp, attrs;
 			for(var i=0; i < data.length; i++){
 				tmp = '';
-				//if searchwith exists use th as attributes list, else just use all of them
+				//if searchon exists use th as attributes list, else just use all of them
 
-				if(typeof here.options.searchwith != 'undefined'){
+				if(typeof here.options.searchon != 'undefined'){
 					//grab only the attributes we want to search on
-					attrs = here.options.searchwith;
+					attrs = here.options.searchon;
 					for(var c=0; c<attrs.length;c++){
 						tmp += ' '+data[i][attrs[c]];
 					}
