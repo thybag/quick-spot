@@ -36,6 +36,6 @@ Quickspot impliments a number of advanced methods which can be used to futher cu
 
 **option.displayhandler** - Provide a callback here to fully control how each item displays in the search results. The callback with be passed the json object for the given item. Full html can be used here.
 
-**option.displayhandler** - A callback to define what should happen when an item is selected. This callback is passed the json object for the selected item.
+**option.clickhandler** - A callback to define what should happen when an item is selected. This callback is passed the json object for the selected item.
 
 **option.searchon** - An array defining which attributes in your JSON quickspot should pay attention to. If this is not set quickspot will look at all of them.
