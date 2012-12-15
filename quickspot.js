@@ -178,7 +178,11 @@
 	 	 * @param idx index of item to select
 	 	 */
 		methods.selectIndex = function(idx){
-			//ensure valid range
+
+			//deselect previously active item.
+			util.removeClass(here.dom.children[here.selectedIndex], 'selected');
+
+			//Ensure ranges are valid for new item (fix them if not)
 			if(idx >= here.results.length){
 				here.selectedIndex = here.results.length-1;
 			}else if(idx < 0){
@@ -186,9 +190,9 @@
 			}else{
 				here.selectedIndex = idx;
 			}
-			//Un select old value, select new value in UI.
-			util.removeClass(util.cssSelect(here.dom, '.quickspot-result.selected') ,'selected');
-			util.addClass(util.cssSelect(here.dom, '.quickspot-result-'+here.selectedIndex),'selected');
+
+			//Select new item
+			util.addClass(here.dom.children[here.selectedIndex], 'selected');
 		}
 
 		/**
@@ -403,20 +407,6 @@
 	util.hasClass = function(node, nclass){
 		if(node==null) return;
 		return (node.className.match(new RegExp('(^|\\s)'+nclass+'(\\s|$)')) != null);
-	}
-	// cssSelect
-	util.cssSelect = function(node, selector){
-		if(document.querySelector){
-			//Fast and easy.
-			return node.querySelector(selector);
-		}else{
-			//Rather than boot an entire shim, why not ask jQuery if it can lend a hand here
-			if (typeof jQuery !== 'undefined'){
-				return $(node).find(selector)[0];
-			}else{
-				//TODO, possibly import sizzle?
-			}
-		}
 	}
 	// High speed occurrences function (amount of matches within a string)
 	// borrowed from stack overflow (benchmarked to be significantly faster than regexp)
