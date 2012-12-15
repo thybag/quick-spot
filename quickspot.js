@@ -105,8 +105,8 @@
 	 		//make selected index 0 again
 	 		this.selectedIndex = 0;
 
-	 		//Perform search & render the result
-	 		here.results = methods.findMatches(here.target.value);
+	 		//Perform search, order results & render them
+	 		here.results = methods.sortResults(methods.findMatches(search), search);
 			methods.render_results(here.results);
 	
 	 	}
@@ -288,7 +288,7 @@
 				//get item
 				itm = here.data_store[i];
 				//do really quick string search
-				if(itm._searchvalues.indexOf(search) !== -1){
+				if(itm.__searchvalues.indexOf(search) !== -1){
 					//add to matches if there was one
 					matches.push(itm);
 				}
@@ -296,6 +296,31 @@
 			//return matching items
 			return matches;
 		}
+		/**
+		 * sort Results
+		 * Order results by the number of matches found in the search string.
+		 * Repeating certain phrases in json can be used to make certain results
+		 * appear higher than others if needed.
+		 *
+		 * @param results - array of items that match the search result
+		 * @param search - search string in use
+		 * @return orderd array of results
+		 */
+		methods.sortResults = function(results,search){
+	 		// Searches like 'a' will have a lot of results and
+	 		// meaningful ordering won't really be possible,
+	 		// so may as well take the lazy option
+	 		if(search.length < 2) return results;
+	 		//precompute match counts
+	 		for(var i=0;i<results.length;i++)
+	 			results[i].__matches = util.occurrences(results[i].__searchvalues, search);
+	 		//Sort results based on matches
+	 		results.sort(function(a,b){
+	 			return (a.__matches==b.__matches) ? 0 : (a.__matches < b.__matches) ? 1 : -1;
+	 		})
+	 		//return them for rendering
+	 		return results;
+	 	}
 
 		/**
 		 * initialise data
@@ -310,7 +335,7 @@
 			var data = JSON.parse(data);
 
 			// Loop through searchable items, adding all values that will need to be searched upon in to a
-			// string stored as _searchvalues. Either add everything or just what the user specifies.
+			// string stored as __searchvalues. Either add everything or just what the user specifies.
 			var tmp, attrs;
 			for(var i=0; i < data.length; i++){
 				tmp = '';
@@ -330,10 +355,10 @@
 					}
 				}
 				//lower case everything
-				data[i]._searchvalues = tmp.toLowerCase();
+				data[i].__searchvalues = tmp.toLowerCase();
 			}
 			//Store in memory
-			here.data_store = data
+			here.data_store = data;
 		}
  	}
  	
@@ -392,7 +417,23 @@
 				//TODO, possibly import sizzle?
 			}
 		}
+	}
+	// High speed occurrences function (amount of matches within a string)
+	// borrowed from stack overflow (benchmarked to be significantly faster than regexp)
+	// http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
+	util.occurrences = function(haystack, needle){
 
+	    haystack+=""; needle+="";
+	    if(needle.length<=0) return haystack.length+1;
+
+	    var n=0, pos=0;
+	    var step=needle.length;
+
+	    while(true){
+	        pos=haystack.indexOf(needle,pos);
+	        if(pos>=0){ n++; pos+=step; } else break;
+	    }
+	    return(n);
 	}
 
 	//Add ourselves to the outside world / global namespace
