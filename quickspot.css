@@ -1,0 +1,33 @@
+.quickspot-container {
+	position:relative;
+	/*Oddly IE7 is fine without this, IE8 on the other hand gets a bit confused*/
+	position:absolute\9; 
+ }
+.quickspot-container input {
+	height: 20px;
+	margin-top:5px;
+	padding:4px 6px;
+}
+.quickspot-results {
+	width:340px;
+	background:#fff;
+	position:absolute;
+	top:35px;
+	left:0;
+	max-height:380px;
+	overflow:auto;
+	border:solid 1px #08c;
+	border-radius: 4px;
+	border-top-left-radius: 0px;
+
+}
+.quickspot-results .quickspot-result {
+	padding:8px 10px;
+	display:block;
+	text-decoration: none;
+	cursor:pointer;
+}
+.quickspot-results .quickspot-result.selected{
+	background:#08c;
+	color:#fff;
+}

@@ -1,167 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-			<title>Quick-Spot - A simple high speed JSON search</title>
+		<title>Quick-Spot - A simple high speed JSON search</title>
 
-			<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap.no-icons.min.css" rel="stylesheet">
-			<style>
-				.container-medium {
-					margin: 0 auto;
-        			max-width: 800px;
+		<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap.no-icons.min.css" rel="stylesheet" />
+		<link href="../quickspot.css" rel="stylesheet" />
+		<style type='text/css'>
+			.container-medium {
+				margin: 0 auto;
+    			max-width: 800px;
+			}
+			.container-medium > hr {
+		        margin: 20px 0;
+			}
+			.navbar {
+		    	 margin: 20px 0;
+			}		
+		</style>
+
+		<script type='text/javascript' src='../quickspot.js'></script>
+		<script type='text/javascript'>
+			//Note: this is sample data, ucas codes & other attributes just randomly made up
+			var test_data = [	
+				{
+					"ucas": 		"UK89801",
+					"name":			"Financial Economics",
+					"award"	:		"BSc (Hons)",
+					"subject": 		"Economics",
+					"keywords": ""
+				},
+				{
+					"ucas": 		"UK32201",
+					"name":			"Accounting, Finance and Economics",
+					"award"	:		"BA (Hons)",
+					"subject": 		"Accounting and Finance",
+					"keywords": ""
+				},
+				{
+					"ucas": 		"UK76521",
+					"name":			"Computer Science",
+					"award"	:		"BSc (Hons)",
+					"subject": 		"Computing",
+					"keywords":		"infomatics"
+				},
+					{
+					"ucas": 		"UK76523",
+					"name":			"Computer Science with a year in indusrty",
+					"award"	:		"BSc (Hons)",
+					"subject": 		"Computing",
+					"keywords":		"infomatics"
+				},
+				{
+					"ucas": 		"UK00921",
+					"name":			"Actuarial Science",
+					"award"	:		"BSc (Hons)",
+					"subject": 		"Actuarial Science",
+					"keywords": ""
+				},
+				{
+					"ucas": 		"UK11221",
+					"name":			"Accounting and Management",
+					"award"	:		"BA (Hons)",
+					"subject": 		"Accounting and Finance",
+					"keywords": ""
+				},
+				{
+					"ucas": 		"UK33321",
+					"name":			"American Studies",
+					"award"	:		"BA (Hons)",
+					"subject": 		"Accounting and Finance",
+					"keywords": ""
+				},
+				{
+					"ucas": 		"UK23621",
+					"name":			"Architecture",
+					"award"	:		"BA (Hons)",
+					"subject": 		"Accounting and Finance",
+					"keywords": ""
+				},
+				{
+					"ucas": 		"UK22321",
+					"name":			"Film studies",
+					"award"	:		"BA (Hons)",
+					"subject": 		"Film",
+					"keywords": ""
 				}
-				.container-medium > hr {
-			        margin: 20px 0;
-			    }
-			    .navbar {
-			    	 margin: 20px 0;
-			    }
-			    .quickspot-results {
-			    	width:340px;
-			    	background:#fff;
-			    	position:absolute;
-			    	max-height:380px;
-			    	overflow:auto;
-			    	border:solid 1px #08c;
-			    	border-radius: 4px;
-			    	border-top-left-radius: 0px;
-			    }
-			    .quickspot-results .quickspot-result {
-			    	padding:8px 10px;
-			    	display:block;
-			    	text-decoration: none;
-			    	cursor:pointer;
-			    	
-			    }
-			    .quickspot-results .quickspot-result.selected{
-			    	background:#08c;
-			    	color:#fff;
-			    }
-			</style>
 
-			<script type='text/javascript' src='../quickspot.js'></script>
-			<script type='text/javascript'>
-				//Note: this is sample data, ucas codes & other attributes just randomly made up
-				var test_data = [	
-					{
-						"ucas": 		"UK89801",
-						"name":			"Financial Economics",
-						"award"	:		"BSc (Hons)",
-						"subject": 		"Economics",
-						"keywords": ""
-					},
-					{
-						"ucas": 		"UK32201",
-						"name":			"Accounting, Finance and Economics",
-						"award"	:		"BA (Hons)",
-						"subject": 		"Accounting and Finance",
-						"keywords": ""
-					},
-					{
-						"ucas": 		"UK76521",
-						"name":			"Computer Science",
-						"award"	:		"BSc (Hons)",
-						"subject": 		"Computing",
-						"keywords":		"infomatics"
-					},
-						{
-						"ucas": 		"UK76523",
-						"name":			"Computer Science with a year in indusrty",
-						"award"	:		"BSc (Hons)",
-						"subject": 		"Computing",
-						"keywords":		"infomatics"
-					},
-					{
-						"ucas": 		"UK00921",
-						"name":			"Actuarial Science",
-						"award"	:		"BSc (Hons)",
-						"subject": 		"Actuarial Science",
-						"keywords": ""
-					},
-					{
-						"ucas": 		"UK11221",
-						"name":			"Accounting and Management",
-						"award"	:		"BA (Hons)",
-						"subject": 		"Accounting and Finance",
-						"keywords": ""
-					},
-					{
-						"ucas": 		"UK33321",
-						"name":			"American Studies",
-						"award"	:		"BA (Hons)",
-						"subject": 		"Accounting and Finance",
-						"keywords": ""
-					},
-					{
-						"ucas": 		"UK23621",
-						"name":			"Architecture",
-						"award"	:		"BA (Hons)",
-						"subject": 		"Accounting and Finance",
-						"keywords": ""
-					},
-					{
-						"ucas": 		"UK22321",
-						"name":			"Film studies",
-						"award"	:		"BA (Hons)",
-						"subject": 		"Film",
-						"keywords": ""
-					},
+			];
 
-				];
+			//Setup the standard quickspot-search
+			quickspot.attach({"url":"demo.json", "target":"searchbox"});
 
-				//Setup the standard quickspot-search
-				quickspot.attach({"url":"demo.json", "target":"searchbox"});
+			//setup a slighly altered one
+			quickspot.attach({
+				"data":test_data, 
+				"target":"searchbox2",
+				"displayhandler": function(co){
+					return '<strong>'+co.name+'</strong> - '+co.award
+					+'<br><small>'+co.ucas+' / '+co.subject+'</small>';
+				},
+				"clickhandler": function(co){
+					// You would probably want to do somthing more useful here
+					alert(co.name);
+				}
 
-				//setup a slighly altered one
-				quickspot.attach({
-					"data":test_data, 
-					"target":"searchbox2",
-					"displayhandler": function(co){
-						return '<strong>'+co.name+'</strong> - '+co.award
-						+'<br><small>'+co.ucas+' / '+co.subject+'</small>';
-					},
-					"clickhandler": function(co){
-						// You would probably want to do somthing more useful here
-						alert(co.name);
-					}
-
-				});
-			</script>
+			});
+		</script>
 	</head>
 	<body>
 		<div class="container-medium">
-				<div class="masthead">
-		        	<ul class="nav nav-pills pull-right">
-				          <li class="active"><a href="#">Home</a></li>
-				          <li><a href="http://github.com/thybag/quick-spot">Github</a></li>
-		        	</ul>
-		        <h3 class="muted">Quick Spot Demo</h3>
+			<div class="masthead">
+	        	<ul class="nav nav-pills pull-right">
+			          <li class="active"><a href="#">Home</a></li>
+			          <li><a href="http://github.com/thybag/quick-spot">Github</a></li>
+	        	</ul>
+	        	<h3 class="muted" >Quick Spot Demo</h3>
+	        </div>
+	        <hr>
+	        <div class='row'>
+		        <div class='span4'>
+
+		        	 <h4 style='height:50px;'>Normal usage</h4>
+
+		        	 <div class=" navbar  navbar-inverse">
+				      	<div class="navbar-inner">
+					      	<div class='search_bar'>
+					      		<div class="navbar-form pull-left">
+									<div class='quickspot-container'><input type='text' id='searchbox' placeholder='Try me...' /></div>
+								</div>
+							</div>
+						</div>
+					</div>
 		        </div>
-		        <hr>
+		        <div class='span4' style='margin-left:58px;'>
 
-		        <h4>Normal usage</h4>
+					<h4 style='height:50px;'>With custom display (alerts when clicked)</h4>
 
-		        <div class=" navbar  navbar-inverse">
-			      	<div class="navbar-inner">
-				      	<div class='search_bar'>
-				      		<div class="navbar-form pull-left">
-								<input type='text' id='searchbox' placeholder='Try me...' />
+					<div class=" navbar  navbar-inverse">
+				      	<div class="navbar-inner">
+					      	<div class='search_bar'>
+					      		<div class="navbar-form pull-left">
+									<div class='quickspot-container'><input type='text' id='searchbox2' placeholder='Try me also' /></div>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-
-				<h4>Custom display and alerting results</h4>
-
-				<div class=" navbar  navbar-inverse">
-			      	<div class="navbar-inner">
-				      	<div class='search_bar'>
-				      		<div class="navbar-form pull-right">
-								<input type='text' id='searchbox2' placeholder='Try me...' />
-							</div>
-						</div>
-					</div>
-				</div>
-		
 			</div>
 		</div>
 	</body>
