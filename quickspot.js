@@ -28,7 +28,8 @@
 	 	 * @param option.url url of JSON feed to search with
 		 *
 	 	 * Optional
-	 	 * @param option.displayname name of attribute to display in box (name used by default)
+	 	 * @param option.key_value attribute contining key bit of information (name used by default)
+	 	 * @param option.displayname name of attribute to display in box (uses key_value by default)
 	 	 * @param option.displayhandler overwrites defualt display method.
 	 	 * @param options.clickhandler Callback method, is passed the selected item.
 	 	 * @param options.searchon, array of attributes to search on (will use all if not specified)
@@ -50,9 +51,14 @@
 	 			console.log("Error: Target ID could not be found");
 	 			return;
 	 		}
+	 		//get key value
+	 		if(!options.key_value){
+	 			options.key_value = 'name';
+	 		}
+
 
 	 		if(!options.displaname){
-	 			options.displaname = 'name';
+	 			options.displaname = options.key_value;
 	 		}
 
 	 		//find data
@@ -230,7 +236,7 @@
 				if(typeof here.options.displayhandler != 'undefined'){
 					tmp.innerHTML = here.options.displayhandler(result);
 				}else{
-					tmp.innerHTML = result[here.options.displaname];
+					tmp.innerHTML = result[here.options.displayname];
 				}
 				
 				//Apply classes
