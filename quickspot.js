@@ -389,12 +389,12 @@
 						tmp += ' '+data[i][a]
 					}
 				}
-				//lower case everything (inital space is to make word start check simpler)
-				data[i].__searchvalues = ' '+tmp.toLowerCase();
+				//lower case everything
+				data[i].__searchvalues = tmp.toLowerCase();
 				data[i].__keyvalue = data[i][here.options.key_value].toLowerCase();
 			}
 			//Store in memory
-			here.data_store = data;
+		console.log(data);	here.data_store = data;
 		}
  	}
  	
