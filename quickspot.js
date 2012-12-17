@@ -331,20 +331,30 @@
 	 		// meaningful ordering won't really be possible,
 	 		// so may as well take the lazy option
 	 		if(search.length < 2) return results;
+
+	 		var score, idx;
 	 		//precompute match counts / if searchvalue is start of word or not
 	 		for(var i=0;i<results.length;i++){
-	 			results[i].__wordstart = (results[i].__searchvalues.indexOf(' '+search) !== -1)? 1 : 0;
-	 			results[i].__matches = util.occurrences(results[i].__searchvalues, search);
+	 			score = 0;
+	 			//key value index
+	 			idx = results[i].__keyvalue.indexOf(search);
+
+	 			// count occurences (base score)
+	 			score += util.occurrences(results[i].__searchvalues, search);
+	 			// boost score by 5 if match is start of word
+	 			score += (results[i].__searchvalues.indexOf(' '+search) !== -1) ? 5 : 0;
+ 				// In title, boost score by 5
+ 				score += (idx!==-1)? 5 : 0;
+ 				// If perfect title match +10
+ 				score += (idx===0)? 10 : 0; 		
+
+	 			results[i].__score = score;
 	 		}
 	 			
 	 		//Sort results based on matches
 	 		results.sort(function(a, b){
-	 			//Results with a word start match come first
-	 			if(a.__wordstart != b.__wordstart){
-	 				return (a.__wordstart < b.__wordstart) ? 1 : -1;
-	 			}
 	 			//Order these results by occurence count
-	 			return (a.__matches==b.__matches) ? 0 : (a.__matches < b.__matches) ? 1 : -1;
+	 			return (a.__score==b.__score) ? 0 : (a.__score < b.__score) ? 1 : -1;
 	 		})
 	 		//return them for rendering
 	 		return results;
@@ -379,8 +389,9 @@
 						tmp += ' '+data[i][a]
 					}
 				}
-				//lower case everything (inital space is to make word start check easier tod o)
+				//lower case everything (inital space is to make word start check simpler)
 				data[i].__searchvalues = ' '+tmp.toLowerCase();
+				data[i].__keyvalue = data[i][here.options.key_value].toLowerCase();
 			}
 			//Store in memory
 			here.data_store = data;
