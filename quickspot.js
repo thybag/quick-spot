@@ -325,11 +325,19 @@
 	 		// meaningful ordering won't really be possible,
 	 		// so may as well take the lazy option
 	 		if(search.length < 2) return results;
-	 		//precompute match counts
-	 		for(var i=0;i<results.length;i++)
+	 		//precompute match counts / if searchvalue is start of word or not
+	 		for(var i=0;i<results.length;i++){
+	 			results[i].__wordstart = (results[i].__searchvalues.indexOf(' '+search) !== -1)? 1 : 0;
 	 			results[i].__matches = util.occurrences(results[i].__searchvalues, search);
+	 		}
+	 			
 	 		//Sort results based on matches
-	 		results.sort(function(a,b){
+	 		results.sort(function(a, b){
+	 			//Results with a word start match come first
+	 			if(a.__wordstart != b.__wordstart){
+	 				return (a.__wordstart < b.__wordstart) ? 1 : -1;
+	 			}
+	 			//Order these results by occurence count
 	 			return (a.__matches==b.__matches) ? 0 : (a.__matches < b.__matches) ? 1 : -1;
 	 		})
 	 		//return them for rendering
@@ -365,8 +373,8 @@
 						tmp += ' '+data[i][a]
 					}
 				}
-				//lower case everything
-				data[i].__searchvalues = tmp.toLowerCase();
+				//lower case everything (inital space is to make word start check easier tod o)
+				data[i].__searchvalues = ' '+tmp.toLowerCase();
 			}
 			//Store in memory
 			here.data_store = data;
