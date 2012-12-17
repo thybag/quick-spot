@@ -57,8 +57,8 @@
 	 		}
 
 
-	 		if(!options.displaname){
-	 			options.displaname = options.key_value;
+	 		if(!options.displayname){
+	 			options.displayname = options.key_value;
 	 		}
 
 	 		//find data
@@ -283,7 +283,7 @@
 					window.location = url;
 				}else{
 					//else assume we are just a typeahead?
-					here.target.value = result[here.options.displaname];
+					here.target.value = result[here.options.displayname];
 					here.dom.style.display = 'none';
 				}
 			}
@@ -394,7 +394,7 @@
 				data[i].__keyvalue = data[i][here.options.key_value].toLowerCase();
 			}
 			//Store in memory
-		console.log(data);	here.data_store = data;
+			here.data_store = data;
 		}
  	}
  	
