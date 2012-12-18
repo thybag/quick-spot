@@ -32,12 +32,12 @@ Quickspot impliments a number of advanced methods which can be used to futher cu
 
 **option.key_value** - Use this to specify the name of the primary attribute in the objects. For example name/title. Results matching this value will be ranked higher. By default quickspot assumes this attribute is called "name".
 
-**option.displayname** - If you would like search results to show a value other than what is contained in key_value (normally "name") set this attribute here.
+**option.display_name** - If you would like search results to show a value other than what is contained in key_value (normally "name") set this attribute here.
 
-**option.displayhandler** - Provide a callback here to fully control how each item displays in the search results. The callback with be passed the json object for the given item. Full html can be used here.
+**option.display_handler** - Provide a callback here to fully control how each item displays in the search results. The callback with be passed the json object for the given item. Full html can be used here.
 
-**option.clickhandler** - A callback to define what should happen when an item is selected. This callback is passed the json object for the selected item.
+**option.click_handler** - A callback to define what should happen when an item is selected. This callback is passed the json object for the selected item.
 
-**option.searchon** - An array defining which attributes in your JSON quickspot should pay attention to. If this is not set quickspot will look at all of them.
+**option.search_on** - An array defining which attributes in your JSON quickspot should pay attention to. If this is not set quickspot will look at all of them.
 
 **options.gen_score** - Callback to set custom ranking algorithm. Is passed a single result object and the search string & returns an int. The higher the number the higher the result will be shown.
