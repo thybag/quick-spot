@@ -338,12 +338,11 @@
 	 			results[i].__score = score_handler(results[i], search);
 	 		}
 	 			
-	 		//Sort results based on matches
+	 		// Sort results based on score (higher=better)
 	 		results.sort(function(a, b){
-	 			//Order these results by occurence count
 	 			return (a.__score==b.__score) ? 0 : (a.__score < b.__score) ? 1 : -1;
 	 		})
-	 		//return them for rendering
+	 		// return them for rendering
 	 		return results;
 	 	}
 
