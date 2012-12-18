@@ -108,6 +108,9 @@
  				return;
  			}
 
+ 			//Lower case search input
+ 			search = search.toLowerCase();
+
  			// Avoid searching if input hasn't changed.
  			// Just reshown what we have
 	 		if(here.lastValue==search){
@@ -301,7 +304,7 @@
 			var matches = [];
 			var itm;
 			//search is lowercased so match using a lowercased values
-			search = search.toLowerCase();
+			search = search;
 			//for each possible item
 			for(var i=0; i < here.data_store.length; i++){
 				//get item
