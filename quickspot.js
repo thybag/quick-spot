@@ -354,12 +354,14 @@
 	 	 */
 	 	methods.calculateScore = function(result, search){
 	 		var score = 0, idx;
-	 		//key value index
+	 		// key value index
  			idx = result.__keyvalue.indexOf(search);
 
- 			// count occurences (base score)
- 			score += util.occurrences(result.__searchvalues, search);
- 			// boost score by 5 if match is start of word
+ 			// Count occurences 
+ 			// This metric is less useful for 1 letter words so don't include it as with lots of
+ 			// results its kinda pricy (timewise)
+ 			if(search.length < 2) score += util.occurrences(result.__searchvalues, search);
+ 			// Boost score by 5 if match is start of word
  			score += (result.__searchvalues.indexOf(' '+search) !== -1) ? 5 : 0;
 			// In title, boost score by 5
 			score += (idx !== -1) ? 5 : 0;
