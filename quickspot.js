@@ -344,6 +344,14 @@
 	 		return results;
 	 	}
 
+	 	/**
+	 	 * Calculate score
+	 	 *
+	 	 * @param result - A result to calculate a score for
+	 	 * @param search - Search value in use
+	 	 *
+	 	 * @return int - score (higher = better)
+	 	 */
 	 	methods.calculateScore = function(result, search){
 	 		var score = 0, idx;
 	 		//key value index
@@ -354,9 +362,9 @@
  			// boost score by 5 if match is start of word
  			score += (result.__searchvalues.indexOf(' '+search) !== -1) ? 5 : 0;
 			// In title, boost score by 5
-			score += (idx!==-1)? 5 : 0;
+			score += (idx !== -1) ? 5 : 0;
 			// If perfect title match +10
-			score += (idx===0)? 10 : 0; 
+			score += (idx === 0) ? 10 : 0; 
 
 			return score;
 	 	}
@@ -368,7 +376,6 @@
 		 *
 		 * @param data raw json
 		 */
-
 		methods.initialise_data = function(data){
 			// Loop through searchable items, adding all values that will need to be searched upon in to a
 			// string stored as __searchvalues. Either add everything or just what the user specifies.
@@ -383,7 +390,6 @@
 					for(var c=0; c<attrs.length;c++){
 						tmp += ' '+data[i][attrs[c]];
 					}
-
 				}else{
 					//just grab all the attribuites 
 					for(var a in data[i]){
