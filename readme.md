@@ -26,7 +26,6 @@ If a json object has a "url" attribute quick-spot will attempt to redirect to th
 
 **option.data** -The data option can be used to pass a JSON directly in to the attach method.
 
-
 ## Advanced configuration
 
 Quickspot impliments a number of advanced methods which can be used to futher customise how quick-spot functions.
@@ -40,3 +39,5 @@ Quickspot impliments a number of advanced methods which can be used to futher cu
 **option.clickhandler** - A callback to define what should happen when an item is selected. This callback is passed the json object for the selected item.
 
 **option.searchon** - An array defining which attributes in your JSON quickspot should pay attention to. If this is not set quickspot will look at all of them.
+
+**options.gen_score** - Callback to set custom ranking algorithm. Is passed a single result object and the search string & returns an int. The higher the number the higher the result will be shown.
