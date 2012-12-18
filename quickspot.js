@@ -273,7 +273,7 @@
 		 * @param result object defining selected result
 		 *
 		 */
-		methods.handleSelection= function(result){
+		methods.handleSelection = function(result){
 			//If custom handler was provided
 			if(typeof here.options.clickhandler != 'undefined'){
 				here.options.clickhandler(result);
@@ -316,6 +316,7 @@
 			//return matching items
 			return matches;
 		}
+
 		/**
 		 * sort Results
 		 * Order results by the number of matches found in the search string.
@@ -326,29 +327,15 @@
 		 * @param search - search string in use
 		 * @return orderd array of results
 		 */
-		methods.sortResults = function(results,search){
+		methods.sortResults = function(results, search){
 	 		// Searches like 'a' will have a lot of results and
 	 		// meaningful ordering won't really be possible,
 	 		// so may as well take the lazy option
 	 		if(search.length < 2) return results;
 
-	 		var score, idx;
 	 		//precompute match counts / if searchvalue is start of word or not
 	 		for(var i=0;i<results.length;i++){
-	 			score = 0;
-	 			//key value index
-	 			idx = results[i].__keyvalue.indexOf(search);
-
-	 			// count occurences (base score)
-	 			score += util.occurrences(results[i].__searchvalues, search);
-	 			// boost score by 5 if match is start of word
-	 			score += (results[i].__searchvalues.indexOf(' '+search) !== -1) ? 5 : 0;
- 				// In title, boost score by 5
- 				score += (idx!==-1)? 5 : 0;
- 				// If perfect title match +10
- 				score += (idx===0)? 10 : 0; 		
-
-	 			results[i].__score = score;
+	 			results[i].__score = methods.calculateScore(results[i], search);
 	 		}
 	 			
 	 		//Sort results based on matches
@@ -358,6 +345,23 @@
 	 		})
 	 		//return them for rendering
 	 		return results;
+	 	}
+
+	 	methods.calculateScore = function(result, search){
+	 		var score=0, idx;
+	 		//key value index
+ 			idx = result.__keyvalue.indexOf(search);
+
+ 			// count occurences (base score)
+ 			score += util.occurrences(result.__searchvalues, search);
+ 			// boost score by 5 if match is start of word
+ 			score += (result.__searchvalues.indexOf(' '+search) !== -1) ? 5 : 0;
+			// In title, boost score by 5
+			score += (idx!==-1)? 5 : 0;
+			// If perfect title match +10
+			score += (idx===0)? 10 : 0; 
+
+			return score;
 	 	}
 
 		/**
