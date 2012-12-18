@@ -29,10 +29,10 @@
 		 *
 	 	 * Optional
 	 	 * @param option.key_value - attribute contining key bit of information (name used by default)
-	 	 * @param option.displayname - name of attribute to display in box (uses key_value by default)
-	 	 * @param option.displayhandler - overwrites defualt display method.
-	 	 * @param options.clickhandler - Callback method, is passed the selected item.
-	 	 * @param options.searchon - array of attributes to search on (will use all if not specified)
+	 	 * @param option.display_name - name of attribute to display in box (uses key_value by default)
+	 	 * @param option.display_handler - overwrites defualt display method.
+	 	 * @param options.click_handler - Callback method, is passed the selected item.
+	 	 * @param options.search_on - array of attributes to search on (will use all if not specified)
 	 	 * @param options.gen_score - callback to set custom score method. (higher number = higher in results order)
 	 	 */
 	 	this.attach = function(options){
@@ -57,8 +57,8 @@
 	 		}
 
 
-	 		if(!options.displayname){
-	 			options.displayname = options.key_value;
+	 		if(!options.display_name){
+	 			options.display_name = options.key_value;
 	 		}
 
 	 		//find data
@@ -236,10 +236,10 @@
 				//Create new a element
 				tmp = document.createElement('a');
 				//Set name/title
-				if(typeof here.options.displayhandler != 'undefined'){
-					tmp.innerHTML = here.options.displayhandler(result);
+				if(typeof here.options.display_handler != 'undefined'){
+					tmp.innerHTML = here.options.display_handler(result);
 				}else{
-					tmp.innerHTML = result[here.options.displayname];
+					tmp.innerHTML = result[here.options.display_name];
 				}
 				
 				//Apply classes
@@ -271,22 +271,22 @@
 		 * handleSelection handles action from click (or enter key press)
 		 * 
 		 * Depending on settings will either send user to url, update box this is attached to or
-		 * perform action specified in clickhandler if it is set.
+		 * perform action specified in click_handler if it is set.
 		 *
 		 * @param result object defining selected result
 		 *
 		 */
 		methods.handleSelection = function(result){
 			//If custom handler was provided
-			if(typeof here.options.clickhandler != 'undefined'){
-				here.options.clickhandler(result);
+			if(typeof here.options.click_handler != 'undefined'){
+				here.options.click_handler(result);
 			}else{
 				if(typeof result.url !== 'undefined'){
 					//If url was provided, go there
 					window.location = url;
 				}else{
 					//else assume we are just a typeahead?
-					here.target.value = result[here.options.displayname];
+					here.target.value = result[here.options.display_name];
 					here.dom.style.display = 'none';
 				}
 			}		
@@ -387,11 +387,11 @@
 			var tmp, attrs;
 			for(var i=0; i < data.length; i++){
 				tmp = '';
-				//if searchon exists use th as attributes list, else just use all of them
+				//if search_on exists use th as attributes list, else just use all of them
 
-				if(typeof here.options.searchon != 'undefined'){
+				if(typeof here.options.search_on !== 'undefined'){
 					//grab only the attributes we want to search on
-					attrs = here.options.searchon;
+					attrs = here.options.search_on;
 					for(var c=0; c<attrs.length;c++){
 						tmp += ' '+data[i][attrs[c]];
 					}
