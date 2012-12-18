@@ -28,12 +28,12 @@
 	 	 * @param option.url url of JSON feed to search with
 		 *
 	 	 * Optional
-	 	 * @param option.key_value attribute contining key bit of information (name used by default)
-	 	 * @param option.displayname name of attribute to display in box (uses key_value by default)
-	 	 * @param option.displayhandler overwrites defualt display method.
-	 	 * @param options.clickhandler Callback method, is passed the selected item.
-	 	 * @param options.searchon, array of attributes to search on (will use all if not specified)
-	 	 *
+	 	 * @param option.key_value - attribute contining key bit of information (name used by default)
+	 	 * @param option.displayname - name of attribute to display in box (uses key_value by default)
+	 	 * @param option.displayhandler - overwrites defualt display method.
+	 	 * @param options.clickhandler - Callback method, is passed the selected item.
+	 	 * @param options.searchon - array of attributes to search on (will use all if not specified)
+	 	 * @param options.gen_score - callback to set custom score method. (higher number = higher in results order)
 	 	 */
 	 	this.attach = function(options){
 
@@ -286,8 +286,7 @@
 					here.target.value = result[here.options.displayname];
 					here.dom.style.display = 'none';
 				}
-			}
-			
+			}		
 		}
 
 		/**
@@ -328,14 +327,17 @@
 		 * @return orderd array of results
 		 */
 		methods.sortResults = function(results, search){
-	 		// Searches like 'a' will have a lot of results and
-	 		// meaningful ordering won't really be possible,
-	 		// so may as well take the lazy option
-	 		if(search.length < 2) return results;
+	 		// Select either user defined score_handler, or default one
+	 		var score_handler;
+	 		if(typeof here.options.gen_score === 'undefined'){
+	 			score_handler = methods.calculateScore;
+	 		}else{
+	 			score_handler = here.options.gen_score;
+	 		}
 
-	 		//precompute match counts / if searchvalue is start of word or not
+	 		// precompute match counts / if searchvalue is start of word or not
 	 		for(var i=0;i<results.length;i++){
-	 			results[i].__score = methods.calculateScore(results[i], search);
+	 			results[i].__score = score_handler(results[i], search);
 	 		}
 	 			
 	 		//Sort results based on matches
@@ -348,7 +350,7 @@
 	 	}
 
 	 	methods.calculateScore = function(result, search){
-	 		var score=0, idx;
+	 		var score = 0, idx;
 	 		//key value index
  			idx = result.__keyvalue.indexOf(search);
 
