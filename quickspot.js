@@ -327,15 +327,10 @@
 		 * @return orderd array of results
 		 */
 		methods.sortResults = function(results, search){
-	 		// Select either user defined score_handler, or default one
-	 		var score_handler;
-	 		if(typeof here.options.gen_score === 'undefined'){
-	 			score_handler = methods.calculateScore;
-	 		}else{
-	 			score_handler = here.options.gen_score;
-	 		}
+	 		// Select either user defined score_handler, or default (built in) one
+	 		var score_handler = (typeof here.options.gen_score === 'undefined') ? methods.calculateScore : here.options.gen_score;
 
-	 		// precompute match counts / if searchvalue is start of word or not
+	 		// Score each value (heigher==better match) for results sort
 	 		for(var i=0;i<results.length;i++){
 	 			results[i].__score = score_handler(results[i], search);
 	 		}
