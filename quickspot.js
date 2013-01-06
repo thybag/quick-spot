@@ -452,9 +452,10 @@
     		evt.initEvent(event_name, true, true);
     		obj.dispatchEvent(evt);
 		}else{
-			var evt = document.createEventObject();
-    		evt.eventType = 'on'+ event_name;
-    		obj.fireEvent(evt.eventType, evt);
+			//IE 8/7 cannot fire custom events so this code is no help :(
+			//var evt = document.createEventObject();
+    		//evt.eventType = 'on'+event_name;
+    		//obj.fireEvent(evt.eventType, evt);
 		}
 	}
 	//Add a CSS class to a DOM element
