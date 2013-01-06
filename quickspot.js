@@ -118,6 +118,9 @@
 	 			return;
 	 		}
 
+	 		//event for quickspot start (doesnt start if no search is triggered)
+	 		util.triggerEvent(here.target,"quickspot:start");
+
 	 		//Update last searched value
 	 		here.lastValue=search;
 
@@ -127,6 +130,9 @@
 	 		//Perform search, order results & render them
 	 		here.results = methods.sortResults(methods.findMatches(search), search);
 			methods.render_results(here.results);
+
+			//event for quickspot end
+			util.triggerEvent(here.target,"quickspot:end");
 	
 	 	}
 
@@ -224,6 +230,8 @@
 			//If no results, don't show result box.
 			if(results.length === 0){
 				here.dom.style.display = 'none';
+				//event for no results found
+				util.triggerEvent(here.target,"quickspot:noresults");
 				return;
 			}
 
@@ -256,6 +264,9 @@
 				//Add to fragment
 				fragment.appendChild(tmp);
 			});
+
+			//event when results found
+			util.triggerEvent(here.target,"quickspot:resultsfound");
 
 			//clear old data from dom.
 			here.dom.innerHTML ='';
@@ -433,6 +444,18 @@
 	util.addListener = function(obj, event, callback){
 		//Proper way vs IE way
 		if(window.addEventListener){obj.addEventListener(event, callback, false);}else{obj.attachEvent('on'+event, callback);}
+	}
+	//Fire an Event
+	util.triggerEvent = function(obj, event_name){
+		if (document.createEvent) {
+			var evt = document.createEvent("HTMLEvents");
+    		evt.initEvent(event_name, true, true);
+    		obj.dispatchEvent(evt);
+		}else{
+			var evt = document.createEventObject();
+    		evt.eventType = 'on'+ event_name;
+    		obj.fireEvent(evt.eventType, evt);
+		}
 	}
 	//Add a CSS class to a DOM element
 	util.addClass = function(node,nclass){

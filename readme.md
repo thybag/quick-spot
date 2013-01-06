@@ -41,3 +41,10 @@ Quickspot impliments a number of advanced methods which can be used to futher cu
 **option.search_on** - An array defining which attributes in your JSON quickspot should pay attention to. If this is not set quickspot will look at all of them.
 
 **options.gen_score** - Callback to set custom ranking algorithm. Is passed a single result object and the search string & returns an int. The higher the number the higher the result will be shown.
+
+In addition to the standard events, quickspot will also fire 4 additional events on the input it is attached to.
+
+**quickspot:start** - Fired each time a quickspot search is invoked.
+**quickspot:end**	- Fired each time a quickspot search completes
+**quickspot:noresults** - Fired whenever a quickspot search finds no results
+**quickspot:resultsfound** - Fired whenever a quickspot search returns results
