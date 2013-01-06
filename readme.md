@@ -44,7 +44,7 @@ Quickspot impliments a number of advanced methods which can be used to futher cu
 
 In addition to the standard events, quickspot will also fire 4 additional events on the input it is attached to.
 
-**quickspot:start** - Fired each time a quickspot search is invoked.
-**quickspot:end**	- Fired each time a quickspot search completes
-**quickspot:noresults** - Fired whenever a quickspot search finds no results
-**quickspot:resultsfound** - Fired whenever a quickspot search returns results
+**quickspot:start** - Fired each time a quickspot search is invoked.    
+**quickspot:end**	- Fired each time a quickspot search completes.    
+**quickspot:noresults** - Fired whenever a quickspot search finds no results.    
+**quickspot:resultsfound** - Fired whenever a quickspot search returns results.     
