@@ -8,7 +8,7 @@
  	// Privatly scoped quick spot object (we talk to the real world (global scope) via the attach method)
  	var quickspot = function()
  	{
-		// Internal data
+		// Internal datastore
 		this.datastore = null;
 
 		this.options = [];
@@ -19,10 +19,10 @@
 	 	this.dom = null;
 	 	this.lastValue = '';
 
-	 	//Becuse javascript has interesting scoping
+	 	// Becuse javascript has interesting scopeing
 	 	var here = this;
 
-
+	 	// Public version of attach.
 	 	this.attach = function(options){
 			util.addListener(window, 'load', function(){
 	 			methods.attach(options);
@@ -118,30 +118,31 @@
  				return;
  			}
 
- 			//Lower case search input
+ 			// Lower case search input
  			search = search.toLowerCase();
 
  			// Avoid searching if input hasn't changed.
  			// Just reshown what we have
-	 		if(here.lastValue==search){
+	 		if(here.lastValue == search){
 	 			here.dom.style.display = 'block';
 	 			return;
 	 		}
 
-	 		//event for quickspot start (doesnt start if no search is triggered)
-	 		util.triggerEvent(here.target,"quickspot:start");
+	 		// Event for quickspot start (doesnt start if no search is triggered)
+	 		util.triggerEvent(here.target, "quickspot:start");
 
-	 		//Update last searched value
-	 		here.lastValue=search;
+	 		// Update last searched value
+	 		here.lastValue = search;
 
-	 		//make selected index 0 again
+	 		// Make selected index 0 again
 	 		this.selectedIndex = 0;
 
-	 		//Perform search, order results & render them
-	 		here.results = methods.sortResults(methods.findMatches(search), search);
+	 		// Perform search, order results & render them
+	 		here.results = here.datastore.search(search).get();
+
 			methods.render_results(here.results);
 
-			//event for quickspot end
+			// Event for quickspot end
 			util.triggerEvent(here.target,"quickspot:end");
 	
 	 	}
@@ -312,87 +313,6 @@
 				}
 			}		
 		}
-
-		/**
-		 * findMatches
-		 * The beating heart of this whole thing. Essentally looks through the json provided and returns any
-		 * matching results as an array, for rendering.
-		 *
-		 * @param search string specifying what to search for
-		 * @return array of ojects that match string
-		 */
-		methods.findMatches = function(search){
-			var matches = [];
-			var itm;
-			//search is lowercased so match using a lowercased values
-			search = search;
-			//for each possible item
-			for(var i=0; i < here.data_store.length; i++){
-				//get item
-				itm = here.data_store[i];
-				//do really quick string search
-				if(itm.__searchvalues.indexOf(search) !== -1){
-					//add to matches if there was one
-					matches.push(itm);
-				}
-			}
-			//return matching items
-			return matches;
-		}
-
-		/**
-		 * sort Results
-		 * Order results by the number of matches found in the search string.
-		 * Repeating certain phrases in json can be used to make certain results
-		 * appear higher than others if needed.
-		 *
-		 * @param results - array of items that match the search result
-		 * @param search - search string in use
-		 * @return orderd array of results
-		 */
-		methods.sortResults = function(results, search){
-	 		// Select either user defined score_handler, or default (built in) one
-	 		var score_handler = (typeof here.options.gen_score === 'undefined') ? methods.calculateScore : here.options.gen_score;
-
-	 		// Score each value (heigher==better match) for results sort
-	 		for(var i=0;i<results.length;i++){
-	 			results[i].__score = score_handler(results[i], search);
-	 		}
-	 			
-	 		// Sort results based on score (higher=better)
-	 		results.sort(function(a, b){
-	 			return (a.__score==b.__score) ? 0 : (a.__score < b.__score) ? 1 : -1;
-	 		})
-	 		// return them for rendering
-	 		return results;
-	 	}
-
-	 	/**
-	 	 * Calculate score
-	 	 *
-	 	 * @param result - A result to calculate a score for
-	 	 * @param search - Search value in use
-	 	 *
-	 	 * @return int - score (higher = better)
-	 	 */
-	 	methods.calculateScore = function(result, search){
-	 		var score = 0, idx;
-	 		// key value index
- 			idx = result.__keyvalue.indexOf(search);
-
- 			// Count occurences 
- 			// This metric is less useful for 1 letter words so don't include it as with lots of
- 			// results its kinda pricy (timewise)
- 			if(search.length < 2) score += util.occurrences(result.__searchvalues, search);
- 			// Boost score by 5 if match is start of word
- 			score += (result.__searchvalues.indexOf(' '+search) !== -1) ? 5 : 0;
-			// In title, boost score by 5
-			score += (idx !== -1) ? 5 : 0;
-			// If perfect title match +10
-			score += (idx === 0) ? 10 : 0; 
-
-			return score;
-	 	}
 
 		/**
 		 * Initialise data
