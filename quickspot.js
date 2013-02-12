@@ -11,15 +11,19 @@
 		// Internal datastore
 		this.datastore = null;
 
-		this.options = [];
-		this.results = [];
+		// Default configurtion
+		this.options = {
+			disable_occurrence_weighting: false
+		};
 
+		// Internal data
+		this.results = [];
 		this.selectedIndex = 0;
 	 	this.target = null;
 	 	this.dom = null;
 	 	this.lastValue = '';
 
-	 	// Becuse javascript has interesting scopeing
+	 	// Because javascript has some interesting scopeing
 	 	var here = this;
 
 	 	// Public version of attach.
@@ -33,23 +37,28 @@
 	 	/**
 	 	 * Attach a new quick-spot search to the page
 	 	 *
-	 	 * Required
+	 	 ** Required
 	 	 * @param option.target ID of element to use
+	 	 *
+	 	 ** One of
 	 	 * @param option.url url of JSON feed to search with
-		 *
-	 	 * Optional
 	 	 * @param option.data - data to search on provided as raw javascript object
-	 	 * @param option.key_value - attribute contining key bit of information (name used by default)
+		 *
+		 ** Advanced configurtion
+		 * @param option.key_value - attribute contining key bit of information (name used by default)
 	 	 * @param option.display_name - name of attribute to display in box (uses key_value by default)
+	 	 * @param options.search_on - array of attributes to search on (will use all if not specified)
+	 	 * @param option.disable_occurrence_weighting - if true, occurences will not weight results
+		 *
+	 	 ** Extend methods
 	 	 * @param option.display_handler - overwrites defualt display method.
 	 	 * @param options.click_handler - Callback method, is passed the selected item.
-	 	 * @param options.search_on - array of attributes to search on (will use all if not specified)
 	 	 * @param options.gen_score - callback to set custom score method. (higher number = higher in results order)
 	 	 */
 	 	methods.attach = function(options){
 
- 			// Save options for later
- 			here.options = options;
+ 			// Merge passed in options into options obj
+ 			for(var i in options) here.options[i] = options[i];
 
  			// Check we have a target!
 	 		if(!options.target){
@@ -613,9 +622,10 @@
  			idx = result.__keyvalue.indexOf(search);
 
  			// Count occurences 
- 			// This metric is less useful for 1 letter words so don't include it as with lots of
- 			// results its kinda pricy (timewise)
- 			if(search.length > 2) score += util.occurrences(result.__searchvalues, search);
+ 			// This metric is less useful for 1 letter words so waste cycles on it if so.
+ 			// The occurrence weighting can aslo be disabled from options if needed, as it can
+ 			// sometimes have unwanted results when used with values that repeat alot.
+ 			if(!here.options.disable_occurrence_weighting && search.length > 2) score += util.occurrences(result.__searchvalues, search);
  			// Boost score by 5 if match is start of word
  			score += (result.__searchvalues.indexOf(' '+search) !== -1) ? 5 : 0;
 			// In title, boost score by 10
@@ -656,12 +666,12 @@
 		xmlhttp.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		xmlhttp.send(null);
 	}
-	//AddListener (cross browser method to add an eventListener)
+	// AddListener (cross browser method to add an eventListener)
 	util.addListener = function(obj, event, callback){
-		//Proper way vs IE way
+		// Proper way vs IE way
 		if(window.addEventListener){obj.addEventListener(event, callback, false);}else{obj.attachEvent('on'+event, callback);}
 	}
-	//Fire an Event
+	// Fire an Event
 	util.triggerEvent = function(obj, event_name){
 		if (document.createEvent) {
 			var evt = document.createEvent("HTMLEvents");
@@ -674,14 +684,14 @@
     		//obj.fireEvent(evt.eventType, evt);
 		}
 	}
-	//Add a CSS class to a DOM element
+	// Add a CSS class to a DOM element
 	util.addClass = function(node,nclass){
 		if(node==null) return;
 		if(!util.hasClass(node,nclass)){
 			node.className = node.className+' '+nclass;
 		}
 	}
-	//Remove a CSS class from a dom element
+	// Remove a CSS class from a dom element
 	util.removeClass = function(node, nclass){
 		if(node==null) return;
 		node.className = node.className.replace(new RegExp('(^|\\s)'+nclass+'(\\s|$)'),'');
@@ -696,7 +706,6 @@
 	// borrowed from stack overflow (benchmarked to be significantly faster than regexp)
 	// http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
 	util.occurrences = function(haystack, needle){
-
 	    haystack+=""; needle+="";
 	    if(needle.length<=0) return haystack.length+1;
 
@@ -710,9 +719,9 @@
 	    return(n);
 	}
 
-	//Add ourselves to the outside world / global namespace
+	// Add ourselves to the outside world / global namespace
  	window.quickspot = {};
- 	//Provide method that will allow us to create an new object instance for each attached searchbox.
+ 	// Provide method that will allow us to create an new object instance for each attached searchbox.
  	window.quickspot.attach = function(options){
  		var qs = new quickspot;
  		qs.attach(options);
@@ -721,9 +730,9 @@
 	
 }).call({});
 
-//Compatability layer
+// Compatability layer
 
-//forEach shim for
+// forEach shim for
 if (!('forEach' in Array.prototype)) {
     Array.prototype.forEach= function(action, that /*opt*/) {
         for (var i= 0, n= this.length; i<n; i++)
@@ -732,15 +741,15 @@ if (!('forEach' in Array.prototype)) {
     };
 }
 
-//JSON shim (import cdn copy of json2 if JSON is missing)
-//Even if jQuery is avaiable it seems json2 is signifcantly faster, so importing it is worth the time.
+// JSON shim (import cdn copy of json2 if JSON is missing)
+// Even if jQuery is avaiable it seems json2 is signifcantly faster, so importing it is worth the time.
 if(typeof JSON === 'undefined'){
 	var json2 = document.createElement('script');
 	json2.src = 'http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js';
 	document.getElementsByTagName('head')[0].appendChild(json2);
 }
 
-//suppress console for IE.
+// Suppress console for IE.
 if(typeof console === 'undefined'){
 	window.console = {"log":function(x){}};
 }
