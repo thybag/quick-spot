@@ -8,8 +8,9 @@
  	// Privatly scoped quick spot object (we talk to the real world (global scope) via the attach method)
  	var quickspot = function()
  	{
-		//internal data
-		this.data_store = [];
+		// Internal data
+		this.datastore = null;
+
 		this.options = [];
 		this.results = [];
 
@@ -21,6 +22,14 @@
 	 	//Becuse javascript has interesting scoping
 	 	var here = this;
 
+
+	 	this.attach = function(options){
+			util.addListener(window, 'load', function(){
+	 			methods.attach(options);
+	 		});
+	 	}
+
+	 	var methods = {};
 	 	/**
 	 	 * Attach a new quick-spot search to the page
 	 	 *
@@ -37,28 +46,27 @@
 	 	 * @param options.search_on - array of attributes to search on (will use all if not specified)
 	 	 * @param options.gen_score - callback to set custom score method. (higher number = higher in results order)
 	 	 */
-	 	this.attach = function(options){
+	 	methods.attach = function(options){
 
- 			//Save options for later
+ 			// Save options for later
  			here.options = options;
 
- 			//check we have a target!
+ 			// Check we have a target!
 	 		if(!options.target){
 	 			console.log("Error: Target not specified");
 	 			return;
 	 		}
-	 		//Get target
+	 		// Get target
 	 		here.target = document.getElementById(options.target);
 	 		if(!here.target){
 	 			console.log("Error: Target ID could not be found");
 	 			return;
 	 		}
-	 		//get key value
+	 		// Get key value
 	 		if(!options.key_value){
 	 			options.key_value = 'name';
 	 		}
-
-
+	 		// Grab display name
 	 		if(!options.display_name){
 	 			options.display_name = options.key_value;
 	 		}
@@ -93,7 +101,7 @@
 	 		util.addListener(here.dom, 		'blur', 	methods.handleKeyUp);
  		}
 	 	
-	 	var methods = {};
+
 
 	 	/**
 	 	 * Find and display results for a given search term
@@ -387,39 +395,13 @@
 	 	}
 
 		/**
-		 * initialise data
-		 * Rather than repetedly proccessing data every search, do a little work now to ensure
-		 * everything is fully setup to allow simple string matching to be all that is needed.
+		 * Initialise data
+		 * create a new datastore to allow quick access, filtering and searching of provided data.
 		 *
 		 * @param data raw json
 		 */
 		methods.initialise_data = function(data){
-			// Loop through searchable items, adding all values that will need to be searched upon in to a
-			// string stored as __searchvalues. Either add everything or just what the user specifies.
-			var tmp, attrs;
-			for(var i=0; i < data.length; i++){
-				tmp = '';
-				//if search_on exists use th as attributes list, else just use all of them
-
-				if(typeof here.options.search_on !== 'undefined'){
-					//grab only the attributes we want to search on
-					attrs = here.options.search_on;
-					for(var c=0; c<attrs.length;c++){
-						tmp += ' '+data[i][attrs[c]];
-					}
-				}else{
-					//just grab all the attribuites 
-					for(var a in data[i]){
-						tmp += ' '+data[i][a]
-					}
-				}
-				//lower case everything
-				data[i].__searchvalues = tmp.toLowerCase();
-				data[i].__keyvalue = data[i][here.options.key_value].toLowerCase();
-			}
-			//Store in memory
-			here.data_store = data;
-
+			here.datastore = datastore.create(data, here.options);
 		}
  	}
  	
@@ -804,12 +786,10 @@
  	window.quickspot = {};
  	//Provide method that will allow us to create an new object instance for each attached searchbox.
  	window.quickspot.attach = function(options){
- 		util.addListener(window,'load',function(){
-	 		var me = new quickspot;
-	 		me.attach(options);
-	 	});
+ 		var qs = new quickspot;
+ 		qs.attach(options);
+	 	return qs;
  	}
- 	window.quickspot.datastore = datastore;
 	
 }).call({});
 
