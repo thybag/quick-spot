@@ -5,8 +5,9 @@
  * @repo https://github.com/thybag/quick-spot
  */
  (function(){
- 	//Privatly scoped quick spot object (we talk to the real world (global scope) via the attach method)
- 	var quickspot = function(){
+ 	// Privatly scoped quick spot object (we talk to the real world (global scope) via the attach method)
+ 	var quickspot = function()
+ 	{
 		//internal data
 		this.data_store = [];
 		this.options = [];
@@ -28,6 +29,7 @@
 	 	 * @param option.url url of JSON feed to search with
 		 *
 	 	 * Optional
+	 	 * @param option.data - data to search on provided as raw javascript object
 	 	 * @param option.key_value - attribute contining key bit of information (name used by default)
 	 	 * @param option.display_name - name of attribute to display in box (uses key_value by default)
 	 	 * @param option.display_handler - overwrites defualt display method.
@@ -417,9 +419,313 @@
 			}
 			//Store in memory
 			here.data_store = data;
+
 		}
  	}
  	
+ 	/**
+ 	 * Datastore component.
+ 	 * datastore components are created with each quickspot instance & provide all the mechanisms for quickly
+ 	 * searching, filtering and ordering the data.
+ 	 *
+ 	 * @param data to store (array of objects)
+ 	 * @param options/settings
+ 	 *			- search_on: columns to search on
+ 	 *			- key_value: primary value (weighted for results ordering)
+ 	 *			- gen_score: function to score objects by closeness to string, used for sorting
+ 	 */
+	var datastore = function(data, options){
+
+		// internal datastores
+		this.data = [];
+		this.data_filtered = [];
+		this.results = [];
+
+		// accessor to primary "this" for internal objs
+		var here = this;
+		// private methods
+		var ds = {};
+
+ 		/**
+		 * Create
+		 *
+		 * Create a new datastore instance. The datastore will use the data and options to generate
+		 * an internal preproccessed reprention of the data in order to allow quicker searching
+		 * and filtering
+		 *
+		 * @param data raw json
+		 * @param options
+		 */
+		ds.create = function(data, options){
+
+			// If there are options, store them set options
+			here.options = (typeof options !== 'undefined') ? options : {};
+			
+			// If no key value, use name.
+			if(!here.options.key_value){
+	 			here.options.key_value = 'name';
+	 		}
+
+			// Convert object to array if found
+			// keys will be thrown away
+			if(typeof data === 'object'){
+				var tmp = [];
+				for(var i in data) if (data.hasOwnProperty(i)) tmp.push(data[i]);
+				data = tmp;
+			}
+
+			var attrs = (typeof here.options.search_on !== 'undefined') ? here.options.search_on : false; 
+
+			// Loop through searchable items, adding all values that will need to be searched upon in to a
+			// string stored as __searchvalues. Either add everything or just what the user specifies.
+			for(var i = 0; i < data.length; i++){
+				// If search_on exists use th as attributes list, else just use all of them
+				data[i] = ds.pre_process(data[i], attrs);
+			}
+			// Store in memory
+			here.data_filtered = here.data = data;
+		}
+
+		/**
+		 * find
+		 * Find any results where search string is within the objects searchable columns
+		 *
+		 * @param search string
+		 * @param col - only look for string in given column
+		 * @return this
+		 */
+ 		this.find = function(search, col){
+ 			this.results = ds.find(search.toLowerCase(), this.data_filtered, col);
+ 			return this;
+ 		}
+
+ 		/**
+		 * sort results by $str
+		 * sort results by closeness to provided string
+		 *
+		 * @param search string
+		 * @return this
+		 */
+ 		this.sort_results_by = function(search){
+ 			this.results = ds.sort_by_match(this.results, search.toLowerCase());
+ 			return this;
+ 		}
+
+ 		/**
+		 * search 
+		 * search for string in results. Similar to find, but results are ordered by match
+		 *
+		 * @param search string
+		 * @return this
+		 */
+ 		this.search = function(search){
+ 			this.find(search).sort_results_by(search);
+ 			return this;
+ 		}
+
+ 		/**
+		 * filter data
+		 * Apply a filter to the data. Filter will persist unit clear_filters is called.
+		 *
+		 * @param filter string
+		 * @param colum to apply filter to (by default will use all searchable cols)
+		 * @return this
+		 */
+ 		this.filter = function(filter, on_col){
+
+ 			if(typeof filter === 'function'){
+ 				this.results = this.data_filtered = ds.findByFunction(filter, this.data_filtered);
+ 			} else{
+
+ 				this.results = this.data_filtered = ds.find(filter.toLowerCase(), this.data_filtered, on_col);	
+ 			}
+ 			
+ 			return this;
+ 		}
+
+ 		/**
+ 		 * Clear all filters applied to data.
+ 		 * @return this
+ 		 */
+ 		this.clear_filters = function(){
+ 			this.data_filtered = this.data;
+ 			return this;
+ 		}
+
+ 		/**
+ 		 * Add additional data to datastore
+ 		 * @param data array of data / data item
+ 		 */
+ 		this.add = function(data){
+
+ 			// If array, run this method on each individual item
+ 			if(typeof data === 'array'){
+ 				for(var i = 0 ;i < data.length; i++) this.add(data[i]);
+
+ 				return this;
+ 			}
+
+ 			// Else proccess data and add it to the data array
+ 			var attrs = (typeof here.options.search_on !== 'undefined') ? here.options.search_on : false; 
+			
+			// Add data
+ 			this.data.push(ds.pre_process(data, attrs));
+
+ 			//clear filters
+ 			this.data_filtered = this.data;
+
+ 			return this;
+ 		}
+
+ 		/**
+ 		 * get
+ 		 *
+ 		 * @return results as array
+ 		 */
+ 		this.get = function(){
+ 			return this.results;
+ 		}
+
+ 		/**
+ 		 * pre_process an item to make it quickly searchable
+ 		 *
+ 		 * @param item item object]
+ 		 * @param attrs attributes to search on
+ 		 */
+		ds.pre_process = function(item, attrs){
+			var tmp = '';
+
+			if(attrs){
+				//grab only the attributes we want to search on
+				for(var c = 0; c < attrs.length; c++){
+					tmp += ' ' + item[attrs[c]];
+				}
+			}else{
+				// just grab all the attribuites 
+				for(var c in item){
+					tmp += ' ' + item[c];
+				}
+			}
+			//lower case everything
+			item.__searchvalues = tmp.toLowerCase();
+			item.__keyvalue = item[here.options.key_value].toLowerCase();
+
+			return item;
+		}
+
+		/**
+		 * find
+		 *
+		 * Looks through the json provided and returns any
+		 * matching results as an array
+		 *
+		 * @param search string specifying what to search for
+		 * @param dataset to search on
+		 * @param column to use in search
+		 * @return array of ojects that match string
+		 */
+		ds.find = function(search, dataset, use_column){
+			var i = 0, itm, matches = [];
+
+			if(typeof use_column === 'undefined') use_column = '__searchvalues';
+
+			//for each possible item
+			for(i=0; i < dataset.length; i++){
+				//get item
+				itm = dataset[i];
+				//do really quick string search
+				if(itm[use_column].indexOf(search) !== -1){
+					//add to matches if there was one
+					matches.push(itm);
+				}
+			}
+			//return matching items
+			return matches;
+		}
+		/**
+		 * findBy func
+		 *
+		 * Looks through the json provided and returns any
+		 * matching results as an array. Provided function is
+		 * used to determine what matches.
+		 *
+		 * @param function to use.
+		 * @param dataset to search on
+		 */
+		ds.findByFunction = function(func, dataset){
+			var i = 0, itm, matches = [];
+			for(i=0; i < dataset.length; i++){
+				itm = dataset[i];
+				if(func(itm)){
+					matches.push(itm)
+				} 
+			}
+			return matches;
+		}
+
+		/**
+		 * sort Results
+		 * Order results by the number of matches found in the search string.
+		 * Repeating certain phrases in json can be used to make certain results
+		 * appear higher than others if needed.
+		 *
+		 * @param results - array of items that match the search result
+		 * @param search - search string in use
+		 * @return orderd array of results
+		 */
+		ds.sort_by_match = function(results, search){
+	 		// Select either user defined score_handler, or default (built in) one
+	 		var score_handler = (typeof here.options.gen_score === 'undefined') ? ds.calculate_match_score : here.options.gen_score;
+	 		
+	 		// Score each value (heigher==better match) for results sort
+	 		for(var i=0;i<results.length;i++){
+	 			results[i].__score = score_handler(results[i], search);
+	 		}
+	 			
+	 		// Sort results based on score (higher=better)
+	 		results.sort(function(a, b){
+	 			return (a.__score==b.__score) ? 0 : (a.__score < b.__score) ? 1 : -1;
+	 		})
+	 		// return them for rendering
+	 		return results;
+	 	}
+
+	 	/**
+	 	 * Calculate score
+	 	 *
+	 	 * @param result - A result to calculate a score for
+	 	 * @param search - Search value in use
+	 	 *
+	 	 * @return int - score (higher = better)
+	 	 */
+	 	ds.calculate_match_score = function(result, search){
+	 		
+	 		var score = 0, idx;
+	 		// key value index
+ 			idx = result.__keyvalue.indexOf(search);
+
+ 			// Count occurences 
+ 			// This metric is less useful for 1 letter words so don't include it as with lots of
+ 			// results its kinda pricy (timewise)
+ 			if(search.length > 2) score += util.occurrences(result.__searchvalues, search);
+ 			// Boost score by 5 if match is start of word
+ 			score += (result.__searchvalues.indexOf(' '+search) !== -1) ? 5 : 0;
+			// In title, boost score by 5
+			score += (idx !== -1) ? 5 : 0;
+			// If perfect title match +10
+			score += (idx === 0) ? 10 : 0; 
+
+			return score;
+	 	}
+
+		// Setup datastore
+		ds.create(data, options);
+	}
+	// Static method, create a new datastore.
+	datastore.create = function(data, options){
+		return new datastore(data, options);
+	}
+
  	/**
  	 * Util methods.
  	 * These are based on code from https://github.com/thybag/base.js/
@@ -503,6 +809,7 @@
 	 		me.attach(options);
 	 	});
  	}
+ 	window.quickspot.datastore = datastore;
 	
 }).call({});
 
