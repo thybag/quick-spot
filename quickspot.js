@@ -582,11 +582,17 @@
 	 		// Score each value (heigher==better match) for results sort
 	 		for(var i=0;i<results.length;i++){
 	 			results[i].__score = score_handler(results[i], search);
+
+	 			results[i].__len_diff = Math.abs(search.length-results[i].__keyvalue.length);
 	 		}
 	 			
 	 		// Sort results based on score (higher=better)
 	 		results.sort(function(a, b){
-	 			return (a.__score==b.__score) ? 0 : (a.__score < b.__score) ? 1 : -1;
+	 			if(a.__score==b.__score){
+	 				return (a.__len_diff==b.__len_diff) ? 0 : (a.__len_diff > b.__len_diff)  ? 1 : -1;
+	 			}else{
+	 				return (a.__score < b.__score) ? 1 : -1;
+	 			}
 	 		})
 	 		// return them for rendering
 	 		return results;
@@ -612,10 +618,12 @@
  			if(search.length > 2) score += util.occurrences(result.__searchvalues, search);
  			// Boost score by 5 if match is start of word
  			score += (result.__searchvalues.indexOf(' '+search) !== -1) ? 5 : 0;
-			// In title, boost score by 5
-			score += (idx !== -1) ? 5 : 0;
-			// If perfect title match +10
-			score += (idx === 0) ? 10 : 0; 
+			// In title, boost score by 10
+			score += (idx !== -1) ? 10 : 0;
+			// If perfect title match so far +20
+			score += (idx === 0) ? 25 : 0; 
+			// Add another 10 if length also matches.
+			score += (idx === 0 && result.__keyvalue.length === search.length) ? 10 : 0;
 
 			return score;
 	 	}
