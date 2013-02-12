@@ -11,19 +11,14 @@
 		// Internal datastore
 		this.datastore = null;
 
-		// Default configurtion
-		this.options = {
-			disable_occurrence_weighting: false
-		};
-
 		// Internal data
 		this.results = [];
-		this.selectedIndex = 0;
-	 	this.target = null;
-	 	this.dom = null;
-	 	this.lastValue = '';
+		this.selectedIndex = 0; // index of currently selected result
+	 	this.target = null; 	// input acting as searchbox
+	 	this.dom = null;		// ref to search results dom object
+	 	this.lastValue = '';	// last searched value
 
-	 	// Because javascript has some interesting scopeing
+	 	// here is kinda a global "this" for quickspot
 	 	var here = this;
 
 	 	// Public version of attach.
@@ -34,6 +29,8 @@
 	 	}
 
 	 	var methods = {};
+
+	 	methods.no_results_handler =  function(self, search){return "<a class='quickspot-result'>no results...</a>";}
 	 	/**
 	 	 * Attach a new quick-spot search to the page
 	 	 *
@@ -66,25 +63,22 @@
 	 			return;
 	 		}
 	 		// Get target
-	 		here.target = document.getElementById(options.target);
+	 		here.target = document.getElementById(here.options.target);
 	 		if(!here.target){
 	 			console.log("Error: Target ID could not be found");
 	 			return;
 	 		}
-	 		// Get key value
-	 		if(!options.key_value){
-	 			options.key_value = 'name';
-	 		}
+
 	 		// Grab display name
-	 		if(!options.display_name){
-	 			options.display_name = options.key_value;
+	 		if(typeof here.options.display_name == 'undefined'){
+	 			here.options.display_name = here.options.key_value;
 	 		}
 
 	 		//find data
-	 		if(typeof options.url !== 'undefined'){
+	 		if(typeof here.options.url !== 'undefined'){
 	 			//Load data via ajax
 	 			util.ajaxGetJSON(options.url, methods.initialise_data);
-	 		}else if(typeof options.data !== 'undefined'){
+	 		}else if(typeof here.options.data !== 'undefined'){
 	 			//Import directly provided data
 	 			methods.initialise_data(options.data);
 	 		}else{
@@ -247,30 +241,35 @@
 		 */
 		methods.render_results = function(results){
 
-			//If no results, don't show result box.
+			// If no results, don't show result box.
 			if(results.length === 0){
-				here.dom.style.display = 'none';
-				//event for no results found
+
+				// Get no results message.
+				// method will return false if no message should be displayed.
+				var msg = here.options.no_results_handler(here, here.lastValue);
+				if(msg !==false){ here.dom.innerHTML = msg; }
+				
+				// event for no results found
 				util.triggerEvent(here.target,"quickspot:noresults");
 				return;
 			}
 
 			// If we have results, append required items in to a documentFragment (to avoid unnessesary dom reflows that will slow this down)
 			var fragment =  document.createDocumentFragment();
-			var tmp; //reuse object, js likes this
+			var tmp; // reuse object, js likes this
 
-			//For each item (given there own scope by this method)
+			// For each item (given there own scope by this method)
 			results.forEach(function(result, idx){
-				//Create new a element
+				// Create new a element
 				tmp = document.createElement('a');
-				//Set name/title
+				// Set name/title
 				if(typeof here.options.display_handler != 'undefined'){
 					tmp.innerHTML = here.options.display_handler(result);
 				}else{
 					tmp.innerHTML = result[here.options.display_name];
 				}
 				
-				//Apply classes
+				// Apply classes
 				tmp.className = 'quickspot-result quickspot-result-'+idx;
 
 				// Attach listener (click)
@@ -281,7 +280,7 @@
 				util.addListener(tmp, 'mouseover', function(event){ 
 					methods.selectIndex(idx);
 				});
-				//Add to fragment
+				// Add to fragment
 				fragment.appendChild(tmp);
 			});
 
@@ -308,10 +307,14 @@
 		 *
 		 */
 		methods.handleSelection = function(result){
-			//If custom handler was provided
+			// Ensure result is valid
+			if(typeof result === 'undefined') return;
+
+			// If custom handler was provided
 			if(typeof here.options.click_handler != 'undefined'){
 				here.options.click_handler(result);
 			}else{
+
 				if(typeof result.url !== 'undefined'){
 					//If url was provided, go there
 					window.location = url;
@@ -332,6 +335,13 @@
 		methods.initialise_data = function(data){
 			here.datastore = datastore.create(data, here.options);
 		}
+
+		// Default configurtion
+		this.options = {
+			"key_value": "name",
+			"disable_occurrence_weighting": false,
+			"no_results_handler": methods.no_results_handler
+		};
  	}
  	
  	/**
@@ -587,7 +597,6 @@
 		ds.sort_by_match = function(results, search){
 	 		// Select either user defined score_handler, or default (built in) one
 	 		var score_handler = (typeof here.options.gen_score === 'undefined') ? ds.calculate_match_score : here.options.gen_score;
-	 		
 	 		// Score each value (heigher==better match) for results sort
 	 		for(var i=0;i<results.length;i++){
 	 			results[i].__score = score_handler(results[i], search);
