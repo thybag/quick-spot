@@ -339,7 +339,6 @@
 		// Default configurtion
 		this.options = {
 			"key_value": "name",
-			"disable_occurrence_weighting": false,
 			"no_results_handler": methods.no_results_handler
 		};
  	}
@@ -362,7 +361,8 @@
 		this.data_filtered = [];
 		this.results = [];
 
-		// accessor to primary "this" for internal objs
+
+		// Accessor to primary "this" for internal objs
 		var here = this;
 		// private methods
 		var ds = {};
@@ -379,8 +379,8 @@
 		 */
 		ds.create = function(data, options){
 
-			// If there are options, store them set options
-			here.options = (typeof options !== 'undefined') ? options : {};
+			// Merge passed in options into options obj
+ 			for(var i in options) here.options[i] = options[i];
 			
 			// If no key value, use name.
 			if(!here.options.key_value){
@@ -416,7 +416,8 @@
 		 * @return this
 		 */
  		this.find = function(search, col){
- 			this.results = ds.find(search.toLowerCase(), this.data_filtered, col);
+ 			search = here.options.string_filter(search.toLowerCase());
+ 			this.results = ds.find(search, this.data_filtered, col);
  			return this;
  		}
 
@@ -428,7 +429,8 @@
 		 * @return this
 		 */
  		this.sort_results_by = function(search){
- 			this.results = ds.sort_by_match(this.results, search.toLowerCase());
+ 			search = here.options.string_filter(search.toLowerCase());
+ 			this.results = ds.sort_by_match(this.results, search);
  			return this;
  		}
 
@@ -457,8 +459,8 @@
  			if(typeof filter === 'function'){
  				this.results = this.data_filtered = ds.findByFunction(filter, this.data_filtered);
  			} else{
-
- 				this.results = this.data_filtered = ds.find(filter.toLowerCase(), this.data_filtered, on_col);	
+ 				filter = here.options.string_filter(filter.toLowerCase());
+ 				this.results = this.data_filtered = ds.find(filter, this.data_filtered, on_col);	
  			}
  			
  			return this;
@@ -517,7 +519,7 @@
 			var tmp = '';
 
 			if(attrs){
-				//grab only the attributes we want to search on
+				// grab only the attributes we want to search on
 				for(var c = 0; c < attrs.length; c++){
 					tmp += ' ' + item[attrs[c]];
 				}
@@ -527,9 +529,9 @@
 					tmp += ' ' + item[c];
 				}
 			}
-			//lower case everything
-			item.__searchvalues = tmp.toLowerCase();
-			item.__keyvalue = item[here.options.key_value].toLowerCase();
+			// lower case everything
+			item.__searchvalues = here.options.string_filter(tmp.toLowerCase());
+			item.__keyvalue = here.options.string_filter(item[here.options.key_value].toLowerCase());
 
 			return item;
 		}
@@ -646,6 +648,23 @@
 
 			return score;
 	 	}
+
+	 	ds.simplfy_strings = function(str){
+
+	 		// remove ' " ( ) , . ?
+	 		str = str.replace(/(\"|\'|\,|\.|\)|\(|\-)/g, "");
+
+	 		// & = and
+	 		str = str.replace(/\&/g, "and");
+
+	 		return str;
+	 	}
+
+	 	// Specify preset options later so methods all exist
+	 	this.options = {
+			"string_filter": ds.simplfy_strings,
+			"disable_occurrence_weighting": false
+		}
 
 		// Setup datastore
 		ds.create(data, options);
