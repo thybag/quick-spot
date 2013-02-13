@@ -30,7 +30,6 @@
 
 	 	var methods = {};
 
-	 	methods.no_results_handler =  function(self, search){return "<a class='quickspot-result'>no results...</a>";}
 	 	/**
 	 	 * Attach a new quick-spot search to the page
 	 	 *
@@ -104,8 +103,6 @@
 	 		util.addListener(here.dom, 		'blur', 	methods.handleKeyUp);
  		}
 	 	
-
-
 	 	/**
 	 	 * Find and display results for a given search term
 	 	 *
@@ -324,6 +321,16 @@
 					here.dom.style.display = 'none';
 				}
 			}		
+		}
+		
+		/**
+		 * handle no results
+		 *
+		 * @param self - ref to quickspot instance
+		 * @param search - search term
+		 */
+		methods.no_results_handler =  function(self, search){
+			return "<a class='quickspot-result'>no results...</a>";
 		}
 
 		/**
