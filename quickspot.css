@@ -19,6 +19,7 @@
 	border:solid 1px #08c;
 	border-radius: 4px;
 	border-top-left-radius: 0px;
+	z-index:9999;
 
 }
 .quickspot-results .quickspot-result {
