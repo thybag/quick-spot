@@ -241,18 +241,21 @@
 		methods.scrollResults = function(direction){
 			// Get basic DOM data (assume results all have same height)
 			results_height = here.dom.clientHeight;
-			// Use offset height rater than clientHight else IE7 just gets 0s
-			result_height = here.dom.childNodes[0].offsetHeight;
 
-			current_result_offset = (here.selectedIndex+1)*result_height;
+			// Get current node, plus its offset & height
+			var current_result = here.dom.childNodes[here.selectedIndex];
+			var current_height = current_result.offsetHeight;
+			var current_offset = current_result.offsetTop;
 
-			// if we are scrolling down, update offsets as needed
-			if(direction == 'down' && (current_result_offset-here.dom.scrollTop) > results_height){
-				here.dom.scrollTop = current_result_offset-results_height;
+			// if we are scrolling down: If the bottom of the current item (offset+height) is below
+			// the displayed portion of the results (results_height), set new scroll position of container
+			if(direction == 'down' && ((current_offset+current_height)-here.dom.scrollTop) > results_height){
+				here.dom.scrollTop = (current_offset+current_height)-results_height;
 			}
-			// if scrolling up
-			if(direction == 'up' && (current_result_offset-result_height) < here.dom.scrollTop){
-				here.dom.scrollTop = current_result_offset-result_height;
+			// if scrolling up: if the top elements top is above the container, scroll container to
+			// current elements offset position
+			if(direction == 'up' && current_offset < here.dom.scrollTop){
+				here.dom.scrollTop = current_offset;
 			}
 		}
 
