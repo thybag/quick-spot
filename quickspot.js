@@ -176,9 +176,11 @@
 			}
 			if(key == 38){ //up
 				methods.selectIndex(here.selectedIndex-1);
+				methods.scrollResults('up');
 			}
 			if(key == 40){ // down
 				methods.selectIndex(here.selectedIndex+1);
+				methods.scrollResults('down');
 			} 	
 
 			if(key==13||key==38||key==40){
@@ -229,6 +231,29 @@
 
 			//Select new item
 			util.addClass(here.dom.children[here.selectedIndex], 'selected');
+		}
+
+		/**
+		 * Scroll results box to show currently selected item
+		 *
+		 * @param (string) direction up|down
+		 */
+		methods.scrollResults = function(direction){
+			// Get basic DOM data (assume results all have same height)
+			results_height = here.dom.clientHeight;
+			// Use offset height rater than clientHight else IE7 just gets 0s
+			result_height = here.dom.childNodes[0].offsetHeight;
+
+			current_result_offset = (here.selectedIndex+1)*result_height;
+
+			// if we are scrolling down, update offsets as needed
+			if(direction == 'down' && (current_result_offset-here.dom.scrollTop) > results_height){
+				here.dom.scrollTop = current_result_offset-results_height;
+			}
+			// if scrolling up
+			if(direction == 'up' && (current_result_offset-result_height) < here.dom.scrollTop){
+				here.dom.scrollTop = current_result_offset-result_height;
+			}
 		}
 
 		/**
