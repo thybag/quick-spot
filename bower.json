@@ -4,7 +4,7 @@
   "main": "quickspot.js",
   "description": "Quickspot is a fast, flexible JSON powered in-memory search. ",
   "license": "MIT",
-  "keywords": ["search","quicksearch"]
+  "keywords": ["search","quicksearch"],
   "ignore": [
     "demo/",
     "readme.md"
