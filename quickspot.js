@@ -1,4 +1,4 @@
-/**
+/*!
  * Quickspot a fast flexible JSON powered in memory search.
  *
  * @author Carl Saggs
@@ -50,6 +50,9 @@
 	 	 * @param option.display_handler - overwrites defualt display method.
 	 	 * @param options.click_handler - Callback method, is passed the selected item.
 	 	 * @param options.gen_score - callback to set custom score method. (higher number = higher in results order)
+	 	 * @param options.no_results - Item to show when no results are found (false to do nothing)
+	 	 * @param options.no_results_click - action when "no results" item is clicked
+	 	 * @param options.located - callback fired when datastore has been loaded
 	 	 */
 	 	methods.attach = function(options){
 
@@ -271,8 +274,17 @@
 
 				// Get no results message.
 				// method will return false if no message should be displayed.
-				var msg = here.options.no_results_handler(here, here.lastValue);
-				if(msg !==false){ here.dom.innerHTML = msg; }
+				var msg = here.options.no_results(here, here.lastValue);
+				if(msg !== false){ 
+					here.dom.innerHTML = msg; 
+					// if there is a child, connect it to the handle selector
+					if(typeof here.dom.childNodes[0] !== 'undefined'){
+						util.addListener(here.dom.childNodes[0], 'click', function(event){ methods.handleSelection(); });
+					}
+				}else{
+					// show nothing
+					here.dom.style.display = "none";
+				}
 				
 				// event for no results found
 				util.triggerEvent(here.target,"quickspot:noresults");
@@ -289,7 +301,7 @@
 				tmp = document.createElement('a');
 				// Set name/title
 				if(typeof here.options.display_handler != 'undefined'){
-					tmp.innerHTML = here.options.display_handler(result);
+					tmp.innerHTML = here.options.display_handler(result, here);
 				}else{
 					tmp.innerHTML = result[here.options.display_name];
 				}
@@ -332,8 +344,9 @@
 		 *
 		 */
 		methods.handleSelection = function(result){
+
 			// Ensure result is valid
-			if(typeof result === 'undefined') return;
+			if(typeof result === 'undefined') return here.options.no_results_click(here.lastValue, here);
 
 			// If custom handler was provided
 			if(typeof here.options.click_handler != 'undefined'){
@@ -357,8 +370,8 @@
 		 * @param self - ref to quickspot instance
 		 * @param search - search term
 		 */
-		methods.no_results_handler =  function(self, search){
-			return "<a class='quickspot-result'>no results...</a>";
+		methods.no_results =  function(self, search){
+			return "<a class='quickspot-result selected'>No results...</a>";
 		}
 
 		/**
@@ -369,12 +382,14 @@
 		 */
 		methods.initialise_data = function(data){
 			here.datastore = datastore.create(data, here.options);
+			if(typeof here.options.loaded !== 'undefined') here.options.loaded(here.datastore);
 		}
 
 		// Default configurtion
 		this.options = {
 			"key_value": "name",
-			"no_results_handler": methods.no_results_handler
+			"no_results": methods.no_results,
+			"no_results_click": function(val, sbox){}
 		};
  	}
  	
@@ -440,7 +455,7 @@
 			}
 			// Store in memory
 			here.data_filtered = here.data = data;
-		}
+		} 
 
 		/**
 		 * find
@@ -790,6 +805,18 @@
  		qs.attach(options);
 	 	return qs;
  	}
+ 	//Allow creation of a quickspot datastore (without the search QS features)
+ 	window.quickspot.datastore = function(options){
+ 		if(typeof options.url !== 'undefined'){
+	 		var obj = {};
+	 		util.ajaxGetJSON(options.url, function(data){
+	 			obj.store = datastore.create(data, options);
+	 			if(typeof options.loaded != 'undefined') options.loaded(obj.store);
+	 		});
+	 		return obj;
+	 	}
+ 		return {"store": datastore.create(data, options) };
+ 	}
 	
 }).call({});
 
@@ -808,7 +835,7 @@ if (!('forEach' in Array.prototype)) {
 // Even if jQuery is avaiable it seems json2 is signifcantly faster, so importing it is worth the time.
 if(typeof JSON === 'undefined'){
 	var json2 = document.createElement('script');
-	json2.src = 'http://ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js';
+	json2.src = '//ajax.cdnjs.com/ajax/libs/json2/20110223/json2.js';
 	document.getElementsByTagName('head')[0].appendChild(json2);
 }
 
