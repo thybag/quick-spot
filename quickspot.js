@@ -204,10 +204,12 @@
 			if(key == 38){ //up
 				methods.selectIndex(here.selectedIndex-1);
 				methods.scrollResults('up');
+				util.triggerEvent(here.target, "quickspot:select");
 			}
 			if(key == 40){ // down
 				methods.selectIndex(here.selectedIndex+1);
 				methods.scrollResults('down');
+				util.triggerEvent(here.target, "quickspot:select");
 			} 	
 
 			if(key==13||key==38||key==40){
