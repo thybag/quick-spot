@@ -47,13 +47,14 @@
 	 	 * @param option.url url of JSON feed to search with
 	 	 * @param option.data - data to search on provided as raw javascript object
 		 *
-		 ** Advanced configurtion
-		 * @param option.key_value - attribute contining key bit of information (name used by default)
+		 ** Advanced configuration
+		 * @param option.key_value - attribute containing key bit of information (name used by default)
 	 	 * @param option.display_name - name of attribute to display in box (uses key_value by default)
 	 	 * @param options.search_on - array of attributes to search on (will use all if not specified)
-	 	 * @param option.disable_occurrence_weighting - if true, occurences will not weight results
+	 	 * @param option.disable_occurrence_weighting - if true, occurrences will not weight results
 	 	 * @param option.safeload - QS will attempt to attach instantly, rather than waiting for document load
-		 * @param options.hide_on_blur - Hide listing on blue (true by default)
+		 * @param options.hide_on_blur - Hide listing on blur (true by default)
+		 * @param option.results_container - id of contain quickspot results will show in (by default will use quickspot elements parent)
 		 *
 	 	 ** Extend methods
 	 	 * @param option.display_handler - overwrites default display method.
@@ -111,7 +112,12 @@
 	 		here.dom.className='quickspot-results';
 	 		here.dom.setAttribute("tabindex","100");
 	 		here.dom.style.display = 'none';
-	 		here.target.parentNode.appendChild(here.dom);
+	 		
+	 		if(typeof here.options.results_container == 'undefined'){
+				here.target.parentNode.appendChild(here.dom);
+			}else{
+				document.getElementById(here.options.results_container).appendChild(here.dom);
+			}
 
 	 		// Attach listeners
 	 		util.addListener(here.target, 	'keydown', 	methods.handleKeyUp);
