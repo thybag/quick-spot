@@ -23,9 +23,16 @@
 
 	 	// Public version of attach.
 	 	this.attach = function(options){
-			util.addListener(window, 'load', function(){
+
+	 		// Don't wait if document is already ready or safeload is turnd off
+	 		if(document.readyState === 'complete' || options.safeload === false) {
 	 			methods.attach(options);
-	 		});
+	 		}else{
+	 			util.addListener(window, 'load', function(){
+	 				methods.attach(options);
+	 			});
+	 		}
+
 	 	}
 
 	 	var methods = {};
@@ -40,19 +47,30 @@
 	 	 * @param option.url url of JSON feed to search with
 	 	 * @param option.data - data to search on provided as raw javascript object
 		 *
-		 ** Advanced configurtion
-		 * @param option.key_value - attribute contining key bit of information (name used by default)
+		 ** Advanced configuration
+		 * @param option.key_value - attribute containing key bit of information (name used by default)
 	 	 * @param option.display_name - name of attribute to display in box (uses key_value by default)
 	 	 * @param options.search_on - array of attributes to search on (will use all if not specified)
-	 	 * @param option.disable_occurrence_weighting - if true, occurences will not weight results
+	 	 * @param option.disable_occurrence_weighting - if true, occurrences will not weight results
+	 	 * @param option.safeload - QS will attempt to attach instantly, rather than waiting for document load
+		 * @param options.hide_on_blur - Hide listing on blur (true by default)
+		 * @param option.results_container - id of contain quickspot results will show in (by default will use quickspot elements parent)
 		 *
 	 	 ** Extend methods
-	 	 * @param option.display_handler - overwrites defualt display method.
+	 	 * @param option.display_handler - overwrites default display method.
 	 	 * @param options.click_handler - Callback method, is passed the selected item.
 	 	 * @param options.gen_score - callback to set custom score method. (higher number = higher in results order)
 	 	 * @param options.no_results - Item to show when no results are found (false to do nothing)
 	 	 * @param options.no_results_click - action when "no results" item is clicked
-	 	 * @param options.located - callback fired when datastore has been loaded
+	 	 * @param options.no_search_handler - action when no search is entered
+	 	 * @param options.loaded - callback fired when datastore has been loaded
+	 	 * @param options.ready - callback fired when quickspot up & running
+	 	 *
+	 	 ** Events
+	 	 * quickspot:start - search is triggered
+	 	 * quickspot:end - search is completed
+	 	 * quickspot:result - result is shown
+	 	 *
 	 	 */
 	 	methods.attach = function(options){
 
@@ -89,21 +107,29 @@
 	 			return;
 	 		}
 	 		
-	 		//Setup basic Dom stuff
+	 		// Setup basic Dom stuff
 	 		here.dom = document.createElement('div');
 	 		here.dom.className='quickspot-results';
 	 		here.dom.setAttribute("tabindex","100");
 	 		here.dom.style.display = 'none';
-	 		here.target.parentNode.appendChild(here.dom);
+	 		
+	 		if(typeof here.options.results_container == 'undefined'){
+				here.target.parentNode.appendChild(here.dom);
+			}else{
+				document.getElementById(here.options.results_container).appendChild(here.dom);
+			}
 
-	 		//Attach listeners
+	 		// Attach listeners
 	 		util.addListener(here.target, 	'keydown', 	methods.handleKeyUp);
 	 		util.addListener(here.target, 	'keyup', 	methods.handleKeyDown);
 	 		util.addListener(here.target, 	'focus', 	methods.handleFocus);
 	 		util.addListener(here.target, 	'blur', 	methods.handleBlur);
 	 		util.addListener(here.dom, 		'blur', 	methods.handleBlur);
-	 		//Allows use of commands when only results are selected (if we are not linking off somewhere)
+	 		// Allows use of commands when only results are selected (if we are not linking off somewhere)
 	 		util.addListener(here.dom, 		'blur', 	methods.handleKeyUp);
+
+	 		// Fire ready callback
+	 		if(typeof options.ready === 'function') options.ready(here);
  		}
 	 	
 	 	/**
@@ -115,6 +141,9 @@
 
 	 		//dont search on blank
 	 		if(search == ''){
+	 			if(typeof here.options.no_search_handler === 'function'){
+	 				here.options.no_search_handler(here.dom, here);
+	 			}
  				//show nothing if no value
  				here.results = [];
  				here.dom.style.display = 'none';
@@ -128,6 +157,7 @@
  			// Just reshown what we have
 	 		if(here.lastValue == search){
 	 			here.dom.style.display = 'block';
+	 			util.triggerEvent(here.target, "quickspot:result");
 	 			return;
 	 		}
 
@@ -146,8 +176,8 @@
 			methods.render_results(here.results);
 
 			// Event for quickspot end
-			util.triggerEvent(here.target,"quickspot:end");
-	
+			util.triggerEvent(here.target, "quickspot:end");
+			util.triggerEvent(here.target, "quickspot:result");
 	 	}
 
 	 	/**
@@ -180,10 +210,12 @@
 			if(key == 38){ //up
 				methods.selectIndex(here.selectedIndex-1);
 				methods.scrollResults('up');
+				util.triggerEvent(here.target, "quickspot:select");
 			}
 			if(key == 40){ // down
 				methods.selectIndex(here.selectedIndex+1);
 				methods.scrollResults('down');
+				util.triggerEvent(here.target, "quickspot:select");
 			} 	
 
 			if(key==13||key==38||key==40){
@@ -200,6 +232,10 @@
 	 	 * if it wasnt one of results that was selected, close results pane
 	 	 */
 		methods.handleBlur = function(event){
+			// is hide on blur enabled
+			if(typeof here.options.hide_on_blur !== 'undefined' && here.options.hide_on_blur === false){
+				return;
+			}
 
 			// While changing active elements document.activeElement will return the body.
 			// Wait a few ms for the new target to be correctly set so we can decided if we really 
