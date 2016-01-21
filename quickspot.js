@@ -5,201 +5,202 @@
  * @repo https://github.com/thybag/quick-spot
  */
  (function(){
- 	// Privatly scoped quick spot object (we talk to the real world (global scope) via the attach method)
- 	var quickspot = function()
- 	{
+	// Privatly scoped quick spot object (we talk to the real world (global scope) via the attach method)
+	var quickspot = function()
+	{
 		// Internal datastore
 		this.datastore = null;
 
 		// Internal data
 		this.results = [];
 		this.selectedIndex = 0; // index of currently selected result
-	 	this.target = null; 	// input acting as searchbox
-	 	this.dom = null;		// ref to search results dom object
-	 	this.lastValue = '';	// last searched value
+		this.target = null; 	// input acting as searchbox
+		this.dom = null;		// ref to search results dom object
+		this.lastValue = '';	// last searched value
 
-	 	// here is kinda a global "this" for quickspot
-	 	var here = this;
+		// here is kinda a global "this" for quickspot
+		var here = this;
 
-	 	// Public version of attach.
-	 	this.attach = function(options){
+		// Public version of attach.
+		this.attach = function(options){
 
-	 		// Don't wait if document is already ready or safeload is turnd off
-	 		if(document.readyState === 'complete' || options.safeload === false) {
-	 			methods.attach(options);
-	 		}else{
-	 			util.addListener(window, 'load', function(){
-	 				methods.attach(options);
-	 			});
-	 		}
+			// Don't wait if document is already ready or safeload is turnd off
+			if(document.readyState === 'complete' || options.safeload === false) {
+				methods.attach(options);
+			}else{
+				util.addListener(window, 'load', function(){
+					methods.attach(options);
+				});
+			}
 
-	 	}
+		}
 
-	 	var methods = {};
+		var methods = {};
 
-	 	/**
-	 	 * Attach a new quick-spot search to the page
-	 	 *
-	 	 ** Required
-	 	 * @param option.target ID of element to use
-	 	 *
-	 	 ** One of
-	 	 * @param option.url url of JSON feed to search with
-	 	 * @param option.data - data to search on provided as raw javascript object
+		/**
+		 * Attach a new quick-spot search to the page
+		 *
+		 ** Required
+		 * @param option.target ID of element to use
+		 *
+		 ** One of
+		 * @param option.url url of JSON feed to search with
+		 * @param option.data - data to search on provided as raw javascript object
 		 *
 		 ** Advanced configuration
 		 * @param option.key_value - attribute containing key bit of information (name used by default)
-	 	 * @param option.display_name - name of attribute to display in box (uses key_value by default)
-	 	 * @param options.search_on - array of attributes to search on (will use all if not specified)
-	 	 * @param option.disable_occurrence_weighting - if true, occurrences will not weight results
-	 	 * @param option.safeload - QS will attempt to attach instantly, rather than waiting for document load
+		 * @param option.display_name - name of attribute to display in box (uses key_value by default)
+		 * @param options.search_on - array of attributes to search on (will use all if not specified)
+		 * @param option.disable_occurrence_weighting - if true, occurrences will not weight results
+		 * @param option.safeload - QS will attempt to attach instantly, rather than waiting for document load
 		 * @param options.hide_on_blur - Hide listing on blur (true by default)
 		 * @param option.results_container - id of contain quickspot results will show in (by default will use quickspot elements parent)
+		 * @param option.prevent_headers - Don't add custom headers such as X-Requested-With (will avoid options requests)
 		 *
-	 	 ** Extend methods
-	 	 * @param option.display_handler - overwrites default display method.
-	 	 * @param options.click_handler - Callback method, is passed the selected item.
-	 	 * @param options.gen_score - callback to set custom score method. (higher number = higher in results order)
-	 	 * @param options.no_results - Item to show when no results are found (false to do nothing)
-	 	 * @param options.no_results_click - action when "no results" item is clicked
-	 	 * @param options.no_search_handler - action when no search is entered
-	 	 * @param options.loaded - callback fired when datastore has been loaded
-	 	 * @param options.ready - callback fired when quickspot up & running
-	 	 *
-	 	 ** Events
-	 	 * quickspot:start - search is triggered
-	 	 * quickspot:end - search is completed
-	 	 * quickspot:result - result is shown
-	 	 *
-	 	 */
-	 	methods.attach = function(options){
+		 ** Extend methods
+		 * @param option.display_handler - overwrites default display method.
+		 * @param options.click_handler - Callback method, is passed the selected item.
+		 * @param options.gen_score - callback to set custom score method. (higher number = higher in results order)
+		 * @param options.no_results - Item to show when no results are found (false to do nothing)
+		 * @param options.no_results_click - action when "no results" item is clicked
+		 * @param options.no_search_handler - action when no search is entered
+		 * @param options.loaded - callback fired when datastore has been loaded
+		 * @param options.ready - callback fired when quickspot up & running
+		 *
+		 ** Events
+		 * quickspot:start - search is triggered
+		 * quickspot:end - search is completed
+		 * quickspot:result - result is shown
+		 *
+		 */
+		methods.attach = function(options){
 
  			// Merge passed in options into options obj
  			for(var i in options) here.options[i] = options[i];
 
  			// Check we have a target!
-	 		if(!options.target){
-	 			console.log("Error: Target not specified");
-	 			return;
-	 		}
-	 		// Get target
-	 		here.target = document.getElementById(here.options.target);
-	 		if(!here.target){
-	 			console.log("Error: Target ID could not be found");
-	 			return;
-	 		}
+			if(!options.target){
+				console.log("Error: Target not specified");
+				return;
+			}
+			// Get target
+			here.target = document.getElementById(here.options.target);
+			if(!here.target){
+				console.log("Error: Target ID could not be found");
+				return;
+			}
 
-	 		// Grab display name
-	 		if(typeof here.options.display_name == 'undefined'){
-	 			here.options.display_name = here.options.key_value;
-	 		}
+			// Grab display name
+			if(typeof here.options.display_name == 'undefined'){
+				here.options.display_name = here.options.key_value;
+			}
 
-	 		//find data
-	 		if(typeof here.options.url !== 'undefined'){
-	 			//Load data via ajax
-	 			util.ajaxGetJSON(options.url, methods.initialise_data);
-	 		}else if(typeof here.options.data !== 'undefined'){
-	 			//Import directly provided data
-	 			methods.initialise_data(options.data);
-	 		}else{
-	 			//Warn user if none is provided
-	 			console.log("Error: No datasource provided.");
-	 			return;
-	 		}
-	 		
-	 		// Setup basic Dom stuff
-	 		here.dom = document.createElement('div');
-	 		here.dom.className='quickspot-results';
-	 		here.dom.setAttribute("tabindex","100");
-	 		here.dom.style.display = 'none';
-	 		
-	 		if(typeof here.options.results_container == 'undefined'){
+			//find data
+			if(typeof here.options.url !== 'undefined'){
+				//Load data via ajax
+				util.ajaxGetJSON(options, methods.initialise_data);
+			}else if(typeof here.options.data !== 'undefined'){
+				//Import directly provided data
+				methods.initialise_data(options.data);
+			}else{
+				//Warn user if none is provided
+				console.log("Error: No datasource provided.");
+				return;
+			}
+			
+			// Setup basic Dom stuff
+			here.dom = document.createElement('div');
+			here.dom.className='quickspot-results';
+			here.dom.setAttribute("tabindex","100");
+			here.dom.style.display = 'none';
+			
+			if(typeof here.options.results_container == 'undefined'){
 				here.target.parentNode.appendChild(here.dom);
 			}else{
 				document.getElementById(here.options.results_container).appendChild(here.dom);
 			}
 
-	 		// Attach listeners
-	 		util.addListener(here.target, 	'keydown', 	methods.handleKeyUp);
-	 		util.addListener(here.target, 	'keyup', 	methods.handleKeyDown);
-	 		util.addListener(here.target, 	'focus', 	methods.handleFocus);
-	 		util.addListener(here.target, 	'blur', 	methods.handleBlur);
-	 		util.addListener(here.dom, 		'blur', 	methods.handleBlur);
-	 		// Allows use of commands when only results are selected (if we are not linking off somewhere)
-	 		util.addListener(here.dom, 		'blur', 	methods.handleKeyUp);
+			// Attach listeners
+			util.addListener(here.target, 	'keydown', 	methods.handleKeyUp);
+			util.addListener(here.target, 	'keyup', 	methods.handleKeyDown);
+			util.addListener(here.target, 	'focus', 	methods.handleFocus);
+			util.addListener(here.target, 	'blur', 	methods.handleBlur);
+			util.addListener(here.dom, 		'blur', 	methods.handleBlur);
+			// Allows use of commands when only results are selected (if we are not linking off somewhere)
+			util.addListener(here.dom, 		'blur', 	methods.handleKeyUp);
 
-	 		// Fire ready callback
-	 		if(typeof options.ready === 'function') options.ready(here);
- 		}
-	 	
-	 	/**
-	 	 * Find and display results for a given search term
-	 	 *
-	 	 * @param search Term to search on.
-	 	 */
-	 	methods.findResultsFor = function(search){
+			// Fire ready callback
+			if(typeof options.ready === 'function') options.ready(here);
+		}
+	
+		/**
+		 * Find and display results for a given search term
+		 *
+		 * @param search Term to search on.
+		 */
+		methods.findResultsFor = function(search){
 
-	 		//dont search on blank
-	 		if(search == ''){
-	 			if(typeof here.options.no_search_handler === 'function'){
-	 				here.options.no_search_handler(here.dom, here);
-	 			}
- 				//show nothing if no value
- 				here.results = [];
- 				here.dom.style.display = 'none';
- 				return;
- 			}
+			//dont search on blank
+			if(search == ''){
+				if(typeof here.options.no_search_handler === 'function'){
+					here.options.no_search_handler(here.dom, here);
+				}
+				//show nothing if no value
+				here.results = [];
+				here.dom.style.display = 'none';
+				return;
+			}
 
- 			// Lower case search input
- 			search = search.toLowerCase();
+			// Lower case search input
+			search = search.toLowerCase();
 
- 			// Avoid searching if input hasn't changed.
- 			// Just reshown what we have
-	 		if(here.lastValue == search){
-	 			here.dom.style.display = 'block';
-	 			util.triggerEvent(here.target, "quickspot:result");
-	 			return;
-	 		}
+			// Avoid searching if input hasn't changed.
+			// Just reshown what we have
+			if(here.lastValue == search){
+				here.dom.style.display = 'block';
+				util.triggerEvent(here.target, "quickspot:result");
+				return;
+			}
 
-	 		// Event for quickspot start (doesnt start if no search is triggered)
-	 		util.triggerEvent(here.target, "quickspot:start");
+			// Event for quickspot start (doesnt start if no search is triggered)
+			util.triggerEvent(here.target, "quickspot:start");
 
-	 		// Update last searched value
-	 		here.lastValue = search;
+			// Update last searched value
+			here.lastValue = search;
 
-	 		// Make selected index 0 again
-	 		this.selectedIndex = 0;
+			// Make selected index 0 again
+			this.selectedIndex = 0;
 
-	 		// Perform search, order results & render them
-	 		here.results = here.datastore.search(search).get();
+			// Perform search, order results & render them
+			here.results = here.datastore.search(search).get();
 
 			methods.render_results(here.results);
 
 			// Event for quickspot end
 			util.triggerEvent(here.target, "quickspot:end");
 			util.triggerEvent(here.target, "quickspot:result");
-	 	}
+		}
 
-	 	/**
-	 	 * On: Quick-spot focus
-	 	 * Display search results (assuming there are any)
-	 	 */
+		/**
+		 * On: Quick-spot focus
+		 * Display search results (assuming there are any)
+		 */
 		methods.handleFocus = function(event){
 			methods.findResultsFor(here.target.value);
 		}
 
 		/**
-	 	 * On: Quick-spot search typed (keydown)
-	 	 * Perform search
-	 	 */
+		 * On: Quick-spot search typed (keydown)
+		 * Perform search
+		 */
 		methods.handleKeyDown = function(event){
 			methods.findResultsFor(here.target.value);
 		}
 
 		/**
-	 	 * On: Quick-spot search typed (keyup)
-	 	 * Handle specal actions (enter/up/down keys)
-	 	 */
+		 * On: Quick-spot search typed (keyup)
+		 * Handle specal actions (enter/up/down keys)
+		 */
 		methods.handleKeyUp = function(event){
 			var key = event.keyCode;
 			//prevent default action
@@ -224,13 +225,13 @@
 				} else {
 				    event.returnValue = false;
 				}
-			} 
+			}
 		}
 
 		/**
-	 	 * On: Quick-spot click off (blur)
-	 	 * if it wasnt one of results that was selected, close results pane
-	 	 */
+		 * On: Quick-spot click off (blur)
+		 * if it wasnt one of results that was selected, close results pane
+		 */
 		methods.handleBlur = function(event){
 			// is hide on blur enabled
 			if(typeof here.options.hide_on_blur !== 'undefined' && here.options.hide_on_blur === false){
@@ -249,11 +250,11 @@
 		}
 
 		/**
-	 	 * Select index
-	 	 * Set selected index for results (used to set the currently selected item)
-	 	 *
-	 	 * @param idx index of item to select
-	 	 */
+		 * Select index
+		 * Set selected index for results (used to set the currently selected item)
+		 *
+		 * @param idx index of item to select
+		 */
 		methods.selectIndex = function(idx){
 
 			//deselect previously active item.
@@ -427,19 +428,19 @@
 			"no_results": methods.no_results,
 			"no_results_click": function(val, sbox){}
 		};
- 	}
- 	
- 	/**
- 	 * Datastore component.
- 	 * datastore components are created with each quickspot instance & provide all the mechanisms for quickly
- 	 * searching, filtering and ordering the data.
- 	 *
- 	 * @param data to store (array of objects)
- 	 * @param options/settings
- 	 *			- search_on: columns to search on
- 	 *			- key_value: primary value (weighted for results ordering)
- 	 *			- gen_score: function to score objects by closeness to string, used for sorting
- 	 */
+	}
+	
+	/**
+	 * Datastore component.
+	 * datastore components are created with each quickspot instance & provide all the mechanisms for quickly
+	 * searching, filtering and ordering the data.
+	 *
+	 * @param data to store (array of objects)
+	 * @param options/settings
+	 *			- search_on: columns to search on
+	 *			- key_value: primary value (weighted for results ordering)
+	 *			- gen_score: function to score objects by closeness to string, used for sorting
+	 */
 	var datastore = function(data, options){
 
 		// internal datastores
@@ -453,7 +454,7 @@
 		// private methods
 		var ds = {};
 
- 		/**
+		/**
 		 * Create
 		 *
 		 * Create a new datastore instance. The datastore will use the data and options to generate
@@ -466,12 +467,12 @@
 		ds.create = function(data, options){
 
 			// Merge passed in options into options obj
- 			for(var i in options) here.options[i] = options[i];
+			for(var i in options) here.options[i] = options[i];
 			
 			// If no key value, use name.
 			if(!here.options.key_value){
-	 			here.options.key_value = 'name';
-	 		}
+				here.options.key_value = 'name';
+			}
 
 			// Convert object to array if found
 			// keys will be thrown away
@@ -501,38 +502,38 @@
 		 * @param col - only look for string in given column
 		 * @return this
 		 */
- 		this.find = function(search, col){
- 			search = here.options.string_filter(search.toLowerCase());
- 			this.results = ds.find(search, this.data_filtered, col);
- 			return this;
- 		}
+		this.find = function(search, col){
+			search = here.options.string_filter(search.toLowerCase());
+			this.results = ds.find(search, this.data_filtered, col);
+			return this;
+		}
 
- 		/**
+		/**
 		 * sort results by $str
 		 * sort results by closeness to provided string
 		 *
 		 * @param search string
 		 * @return this
 		 */
- 		this.sort_results_by = function(search){
- 			search = here.options.string_filter(search.toLowerCase());
- 			this.results = ds.sort_by_match(this.results, search);
- 			return this;
- 		}
+		this.sort_results_by = function(search){
+			search = here.options.string_filter(search.toLowerCase());
+			this.results = ds.sort_by_match(this.results, search);
+			return this;
+		}
 
- 		/**
+		/**
 		 * search 
 		 * search for string in results. Similar to find, but results are ordered by match
 		 *
 		 * @param search string
 		 * @return this
 		 */
- 		this.search = function(search){
- 			this.find(search).sort_results_by(search);
- 			return this;
- 		}
+		this.search = function(search){
+			this.find(search).sort_results_by(search);
+			return this;
+		}
 
- 		/**
+		/**
 		 * filter data
 		 * Apply a filter to the data. Filter will persist unit clear_filters is called.
 		 *
@@ -540,62 +541,62 @@
 		 * @param colum to apply filter to (by default will use all searchable cols)
 		 * @return this
 		 */
- 		this.filter = function(filter, on_col){
+		this.filter = function(filter, on_col){
 
- 			if(typeof filter === 'function'){
- 				this.results = this.data_filtered = ds.findByFunction(filter, this.data_filtered);
- 			} else{
- 				filter = here.options.string_filter(filter.toLowerCase());
- 				this.results = this.data_filtered = ds.find(filter, this.data_filtered, on_col);	
- 			}
- 			
- 			return this;
- 		}
+			if(typeof filter === 'function'){
+				this.results = this.data_filtered = ds.findByFunction(filter, this.data_filtered);
+			} else{
+				filter = here.options.string_filter(filter.toLowerCase());
+				this.results = this.data_filtered = ds.find(filter, this.data_filtered, on_col);	
+			}
+			
+			return this;
+		}
 
- 		/**
+		/**
  		 * Clear all filters applied to data.
  		 * @return this
  		 */
- 		this.clear_filters = function(){
- 			this.data_filtered = this.data;
- 			return this;
- 		}
+		this.clear_filters = function(){
+			this.data_filtered = this.data;
+			return this;
+		}
 
- 		/**
- 		 * Add additional data to datastore
- 		 * @param data array of data / data item
- 		 */
- 		this.add = function(data){
+		/**
+		 * Add additional data to datastore
+		 * @param data array of data / data item
+		 */
+		this.add = function(data){
 
- 			// If array, run this method on each individual item
- 			if(typeof data === 'array'){
- 				for(var i = 0 ;i < data.length; i++) this.add(data[i]);
+			// If array, run this method on each individual item
+			if(typeof data === 'array'){
+				for(var i = 0 ;i < data.length; i++) this.add(data[i]);
 
- 				return this;
- 			}
+				return this;
+			}
 
- 			// Else proccess data and add it to the data array
- 			var attrs = (typeof here.options.search_on !== 'undefined') ? here.options.search_on : false; 
+			// Else proccess data and add it to the data array
+			var attrs = (typeof here.options.search_on !== 'undefined') ? here.options.search_on : false; 
 			
 			// Add data
- 			this.data.push(ds.pre_process(data, attrs));
+			this.data.push(ds.pre_process(data, attrs));
 
- 			//clear filters
- 			this.data_filtered = this.data;
+			//clear filters
+			this.data_filtered = this.data;
 
- 			return this;
- 		}
+			return this;
+		}
 
- 		/**
+		/**
  		 * get
  		 *
  		 * @return results as array
  		 */
- 		this.get = function(){
- 			return this.results;
- 		}
+		this.get = function(){
+			return this.results;
+		}
 
- 		/**
+		/**
  		 * pre_process an item to make it quickly searchable
  		 *
  		 * @param item item object]
@@ -683,48 +684,48 @@
 		 * @return orderd array of results
 		 */
 		ds.sort_by_match = function(results, search){
-	 		// Select either user defined score_handler, or default (built in) one
-	 		var score_handler = (typeof here.options.gen_score === 'undefined') ? ds.calculate_match_score : here.options.gen_score;
-	 		// Score each value (heigher==better match) for results sort
-	 		for(var i=0;i<results.length;i++){
-	 			results[i].__score = score_handler(results[i], search);
+			// Select either user defined score_handler, or default (built in) one
+			var score_handler = (typeof here.options.gen_score === 'undefined') ? ds.calculate_match_score : here.options.gen_score;
+			// Score each value (heigher==better match) for results sort
+			for(var i=0;i<results.length;i++){
+				results[i].__score = score_handler(results[i], search);
 
-	 			results[i].__len_diff = Math.abs(search.length-results[i].__keyvalue.length);
-	 		}
-	 			
-	 		// Sort results based on score (higher=better)
-	 		results.sort(function(a, b){
-	 			if(a.__score==b.__score){
-	 				return (a.__len_diff==b.__len_diff) ? 0 : (a.__len_diff > b.__len_diff)  ? 1 : -1;
-	 			}else{
-	 				return (a.__score < b.__score) ? 1 : -1;
-	 			}
-	 		})
-	 		// return them for rendering
-	 		return results;
-	 	}
+				results[i].__len_diff = Math.abs(search.length-results[i].__keyvalue.length);
+			}
+				
+			// Sort results based on score (higher=better)
+			results.sort(function(a, b){
+				if(a.__score==b.__score){
+					return (a.__len_diff==b.__len_diff) ? 0 : (a.__len_diff > b.__len_diff)  ? 1 : -1;
+				}else{
+					return (a.__score < b.__score) ? 1 : -1;
+				}
+			})
+			// return them for rendering
+			return results;
+		}
 
-	 	/**
-	 	 * Calculate score
-	 	 *
-	 	 * @param result - A result to calculate a score for
-	 	 * @param search - Search value in use
-	 	 *
-	 	 * @return int - score (higher = better)
-	 	 */
-	 	ds.calculate_match_score = function(result, search){
-	 		
-	 		var score = 0, idx;
-	 		// key value index
- 			idx = result.__keyvalue.indexOf(search);
+		/**
+		 * Calculate score
+		 *
+		 * @param result - A result to calculate a score for
+		 * @param search - Search value in use
+		 *
+		 * @return int - score (higher = better)
+		 */
+		ds.calculate_match_score = function(result, search){
+			
+			var score = 0, idx;
+			// key value index
+			idx = result.__keyvalue.indexOf(search);
 
- 			// Count occurences 
- 			// This metric is less useful for 1 letter words so waste cycles on it if so.
- 			// The occurrence weighting can aslo be disabled from options if needed, as it can
- 			// sometimes have unwanted results when used with values that repeat alot.
- 			if(!here.options.disable_occurrence_weighting && search.length > 2) score += util.occurrences(result.__searchvalues, search);
- 			// Boost score by 5 if match is start of word
- 			score += (result.__searchvalues.indexOf(' '+search) !== -1) ? 5 : 0;
+			// Count occurences 
+			// This metric is less useful for 1 letter words so waste cycles on it if so.
+			// The occurrence weighting can aslo be disabled from options if needed, as it can
+			// sometimes have unwanted results when used with values that repeat alot.
+			if(!here.options.disable_occurrence_weighting && search.length > 2) score += util.occurrences(result.__searchvalues, search);
+			// Boost score by 5 if match is start of word
+			score += (result.__searchvalues.indexOf(' '+search) !== -1) ? 5 : 0;
 			// In title, boost score by 10
 			score += (idx !== -1) ? 10 : 0;
 			// If perfect title match so far +20
@@ -733,21 +734,21 @@
 			score += (idx === 0 && result.__keyvalue.length === search.length) ? 10 : 0;
 
 			return score;
-	 	}
+		}
 
-	 	ds.simplfy_strings = function(str){
+		ds.simplfy_strings = function(str){
 
-	 		// remove ' " ( ) , . ?
-	 		str = str.replace(/(\"|\'|\,|\.|\)|\(|\-)/g, "");
+			// remove ' " ( ) , . ?
+			str = str.replace(/(\"|\'|\,|\.|\)|\(|\-)/g, "");
 
-	 		// & = and
-	 		str = str.replace(/\&/g, "and");
+			// & = and
+			str = str.replace(/\&/g, "and");
 
-	 		return str;
-	 	}
+			return str;
+		}
 
-	 	// Specify preset options later so methods all exist
-	 	this.options = {
+		// Specify preset options later so methods all exist
+		this.options = {
 			"string_filter": ds.simplfy_strings,
 			"disable_occurrence_weighting": false
 		}
@@ -760,14 +761,14 @@
 		return new datastore(data, options);
 	}
 
- 	/**
+	/**
  	 * Util methods.
  	 * These are based on code from https://github.com/thybag/base.js/
  	 * I am using these to avoid the need to have dependencies on any external frameworks (example:jQuery).
  	 */
- 	var util = {};
- 	// Perform an AJAX get of a provided url, and return the result to the specified callback.
-	util.ajaxGetJSON = function(location, callback){
+	var util = {};
+	// Perform an AJAX get of a provided url, and return the result to the specified callback.
+	util.ajaxGetJSON = function(options, callback){
 		try {var xmlhttp = window.XMLHttpRequest?new XMLHttpRequest(): new ActiveXObject("Microsoft.XMLHTTP");}  catch (e) { }
 		xmlhttp.onreadystatechange = function(){
 			if ((xmlhttp.readyState == 4) && (xmlhttp.status == 200)) {
@@ -775,9 +776,13 @@
 				callback(JSON.parse(xmlhttp.responseText));
 			}
 		}
-		xmlhttp.open("GET", location, true);
-		//Add standard AJAX header.
-		xmlhttp.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		xmlhttp.open("GET", options.url, true);
+
+		//Add standard AJAX header (unless prevent headers is set and is true)
+		if(typeof options.prevent_headers === 'undefined' || options.prevent_headers == false){
+			xmlhttp.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+		}
+		
 		xmlhttp.send(null);
 	}
 	// AddListener (cross browser method to add an eventListener)
@@ -789,13 +794,13 @@
 	util.triggerEvent = function(obj, event_name){
 		if (document.createEvent) {
 			var evt = document.createEvent("HTMLEvents");
-    		evt.initEvent(event_name, true, true);
-    		obj.dispatchEvent(evt);
+			evt.initEvent(event_name, true, true);
+			obj.dispatchEvent(evt);
 		}else{
 			//IE 8/7 cannot fire custom events so this code is no help :(
 			//var evt = document.createEventObject();
-    		//evt.eventType = 'on'+event_name;
-    		//obj.fireEvent(evt.eventType, evt);
+			//evt.eventType = 'on'+event_name;
+			//obj.fireEvent(evt.eventType, evt);
 		}
 	}
 	// Add a CSS class to a DOM element
@@ -820,39 +825,39 @@
 	// borrowed from stack overflow (benchmarked to be significantly faster than regexp)
 	// http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
 	util.occurrences = function(haystack, needle){
-	    haystack+=""; needle+="";
-	    if(needle.length<=0) return haystack.length+1;
+		haystack+=""; needle+="";
+		if(needle.length<=0) return haystack.length+1;
 
-	    var n=0, pos=0;
-	    var step=needle.length;
+		var n=0, pos=0;
+		var step=needle.length;
 
-	    while(true){
-	        pos=haystack.indexOf(needle,pos);
-	        if(pos>=0){ n++; pos+=step; } else break;
-	    }
-	    return(n);
+		while(true){
+			pos=haystack.indexOf(needle,pos);
+			if(pos>=0){ n++; pos+=step; } else break;
+		}
+		return(n);
 	}
 
 	// Add ourselves to the outside world / global namespace
- 	window.quickspot = {};
- 	// Provide method that will allow us to create an new object instance for each attached searchbox.
- 	window.quickspot.attach = function(options){
- 		var qs = new quickspot;
- 		qs.attach(options);
-	 	return qs;
- 	}
- 	//Allow creation of a quickspot datastore (without the search QS features)
- 	window.quickspot.datastore = function(options){
- 		if(typeof options.url !== 'undefined'){
-	 		var obj = {};
-	 		util.ajaxGetJSON(options.url, function(data){
-	 			obj.store = datastore.create(data, options);
-	 			if(typeof options.loaded != 'undefined') options.loaded(obj.store);
-	 		});
-	 		return obj;
-	 	}
- 		return {"store": datastore.create(data, options) };
- 	}
+	window.quickspot = {};
+	// Provide method that will allow us to create an new object instance for each attached searchbox.
+	window.quickspot.attach = function(options){
+		var qs = new quickspot;
+		qs.attach(options);
+		return qs;
+	}
+	//Allow creation of a quickspot datastore (without the search QS features)
+	window.quickspot.datastore = function(options){
+		if(typeof options.url !== 'undefined'){
+			var obj = {};
+			util.ajaxGetJSON(options, function(data){
+				obj.store = datastore.create(data, options);
+				if(typeof options.loaded != 'undefined') options.loaded(obj.store);
+			});
+			return obj;
+		}
+		return {"store": datastore.create(data, options) };
+	}
 	
 }).call({});
 
@@ -860,11 +865,12 @@
 
 // forEach shim for
 if (!('forEach' in Array.prototype)) {
-    Array.prototype.forEach= function(action, that /*opt*/) {
-        for (var i= 0, n= this.length; i<n; i++)
-            if (i in this)
-                action.call(that, this[i], i, this);
-    };
+	Array.prototype.forEach= function(action, that /*opt*/) {
+		for (var i= 0, n= this.length; i<n; i++)
+			if (i in this){
+				action.call(that, this[i], i, this);
+			}
+	};
 }
 
 // JSON shim (import cdn copy of json2 if JSON is missing)
