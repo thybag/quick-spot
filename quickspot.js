@@ -41,49 +41,57 @@
 		 * Attach a new quick-spot search to the page
 		 *
 		 ** Required
-		 * @param option.target - ID of element to use
+		 * @param options.target - ID of element to use
 		 *
 		 ** One of
-		 * @param option.url - url of JSON feed to search with
-		 * @param option.data - data to search on provided as raw javascript object
+		 * @param options.url - URL of JSON feed to search with
+		 * @param options.data - data to search on provided as raw JavaScript object
 		 *
 		 ** Advanced configuration
-		 * @param option.key_value - attribute containing key bit of information (name used by default)
-		 * @param option.display_name - name of attribute to display in box (uses key_value by default)
+		 * @param options.key_value - attribute containing key bit of information (name used by default)
+		 * @param options.display_name - name of attribute to display in box (uses key_value by default)
 		 * @param options.search_on - array of attributes to search on (will use all if not specified)
-		 * @param option.disable_occurrence_weighting - if true, occurrences will not weight results
-		 * @param option.safeload - QS will attempt to attach instantly, rather than waiting for document load
+		 * @param options.disable_occurrence_weighting - if true, occurrences will not weight results
+		 * @param options.safeload - QS will attempt to attach instantly, rather than waiting for document load
 		 * @param options.hide_on_blur - Hide listing on blur (true by default)
-		 * @param option.results_container - id of contain quickspot results will show in (by default will use quickspot elements parent)
-		 * @param option.prevent_headers - Don't add custom headers such as X-Requested-With (will avoid options requests)
-		 * @param option.screenreader - Experimental screen reader helper (true|false)
-		 *
+		 * @param options.results_container - id of contain quick-spot results will show in (by default will use quick-spot elements parent)
+		 * @param options.prevent_headers - Don't add custom headers such as X-Requested-With (will avoid options requests)
+		 * @param options.auto_highlight - Automatically attempt to highlight search text in result items. (true|false - default false)
+		 * @param options.max_results - Maximum results to display at any one time (after searching/ordering, results after the cut off won't be rendered. 0 = unlimited)
+		 * @param options.screenreader - Experimental screen reader helper (true|false)
+		 * 
 		 ** Extend methods
-		 * @param option.display_handler - overwrites default display method.
+		 * @param options.display_handler - overwrites default display method.
 		 * @param options.click_handler - Callback method, is passed the selected item.
 		 * @param options.gen_score - callback to set custom score method. (higher number = higher in results order)
 		 * @param options.no_results - Item to show when no results are found (false to do nothing)
 		 * @param options.no_results_click - action when "no results" item is clicked
 		 * @param options.no_search_handler - action when no search is entered
 		 * @param options.loaded - callback fired when data store has been loaded
-		 * @param options.ready - callback fired when quickspot up & running
+		 * @param options.ready - callback fired when quick-spot up & running
+		 * @param options.data_pre_parse - callback provided with raw data object & options - can be used to rearrange data to work with quick-spot (if needed)
 		 *
 		 ** Events
 		 * quickspot:start - search is triggered
 		 * quickspot:end - search is completed
+		 * quickspot:activate - quick-spot gets focus
+		 * quickspot:select - new result gets focus
 		 * quickspot:result - result is shown
+		 * quickspot:resultsfound -search completes with results
+		 * quickspot:noresult - search completes with no results
 		 *
 		 */
 		methods.attach = function(options){
 
- 			// Merge passed in options into options obj
- 			for(var i in options) here.options[i] = options[i];
+			// Merge passed in options into options obj
+			for(var i in options) here.options[i] = options[i];
 
- 			// Check we have a target!
+			// Check we have a target!
 			if(!options.target){
 				console.log("Error: Target not specified");
 				return;
 			}
+
 			// Get target
 			here.target = document.getElementById(here.options.target);
 			if(!here.target){
@@ -372,21 +380,37 @@
 				return;
 			}
 
-			// If we have results, append required items in to a documentFragment (to avoid unnessesary dom reflows that will slow this down)
+			// If we have results, append required items in to a documentFragment (to avoid unnecessary DOM reflows that will slow this down)
 			var fragment =  document.createDocumentFragment();
-			var tmp; // reuse object, js likes this
+			var tmp; // reuse object, JS likes this
+			var result_str;
+
+			// if max_results is provided, slice off unwanted results (0 = show all, don't bother slicing if array is smaller than maxResults)
+			if(typeof here.options.max_results === 'number' && here.options.max_results !== 0 && results.length > here.options.max_results){
+				results = results.slice(0, here.options.max_results);
+			}
 
 			// For each item (given there own scope by this method)
 			results.forEach(function(result, idx){
+				
+				// Set name/title
+				if(typeof here.options.display_handler === 'function'){
+					result_str = here.options.display_handler(result, here);
+				}else{
+					result_str = result[here.options.display_name];
+				}	
+
+				// Automatically highlight matching portion of text
+				if(typeof here.options.auto_highlight !== 'undefined' && here.options.auto_highlight == true){
+					// Attempt to avoid sticking strong's in the middle of html tags
+					// http://stackoverflow.com/questions/18621568/regex-replace-text-outside-html-tags#answer-18622606
+					result_str = result_str.replace(RegExp('('+here.lastValue+')(?![^<]*>|[^<>]*<\/)', 'i'), '<strong>$1</strong>');
+				}
+
 				// Create new a element
 				tmp = document.createElement('a');
-				// Set name/title
-				if(typeof here.options.display_handler != 'undefined'){
-					tmp.innerHTML = here.options.display_handler(result, here);
-				}else{
-					tmp.innerHTML = result[here.options.display_name];
-				}
-				
+				tmp.innerHTML = result_str;
+
 				// Apply classes
 				tmp.className = 'quickspot-result quickspot-result-'+idx;
 
@@ -405,13 +429,14 @@
 			//event when results found
 			util.triggerEvent(here.target,"quickspot:resultsfound");
 
-			//clear old data from dom.
+			// Clear old data from DOM.
 			here.dom.innerHTML ='';
-			//Attach fragment
+
+			// Attach fragment
 			here.dom.style.display = 'block';
 			here.dom.appendChild(fragment);
 
-			//select the inital value.
+			// Select the initial value.
 			methods.selectIndex(this.selectedIndex);
 		}
 
@@ -520,6 +545,11 @@
 			if(!here.options.key_value){
 				here.options.key_value = 'name';
 			}
+
+			// Pre parse data (re arrange structure to allow searching if needed)
+			if(typeof options.data_pre_parse === 'function'){
+				data = options.data_pre_parse(data, options);
+			} 
 
 			// Convert object to array if found
 			// keys will be thrown away
