@@ -43,7 +43,7 @@ QuickSpot implements a number of advanced methods which can be used to further c
 In addition you can also extend quickspots base functionality significantly through the use of the following callbacks.
 
 * `options.display_handler(current_item_data, quickspot_instance)` - Callback to override how search items are displayed. 
-* `options.click_handler(clicked_item_data)` - Callback is called whenever an item is clicked/activated.
+* `options.click_handler(clicked_item_data, quickspot_instance)` - Callback is called whenever an item is clicked/activated.
 * `options.gen_score(item_data, search_text)` - Callback to override scoring mechanism. (The higher the number number returned, the higher in results order this item will be)
 * `options.no_results(quickspot_instance, search_text)` - Markup to render if no results are found. (Defaults to false. If set to false, this does nothing)
 * `options.no_results_click(search_text, quickspot_instance)` - Callback to handle what happens when a user attempts to click/hit enter when no results have been found.

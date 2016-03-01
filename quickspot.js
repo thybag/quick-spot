@@ -62,7 +62,7 @@
 		 * 
 		 ** Extend methods
 		 * @param options.display_handler - overwrites default display method.
-		 * @param options.click_handler - Callback method, is passed the selected item.
+		 * @param options.click_handler - Callback method, is passed the selected item & qs instance.
 		 * @param options.gen_score - callback to set custom score method. (higher number = higher in results order)
 		 * @param options.no_results - Item to show when no results are found (false to do nothing)
 		 * @param options.no_results_click - action when "no results" item is clicked
@@ -469,7 +469,7 @@
 			
 			// If custom handler was provided
 			if(typeof here.options.click_handler != 'undefined'){
-				here.options.click_handler(result);
+				here.options.click_handler(result, here);
 			}else{
 
 				if(typeof result.url !== 'undefined'){
