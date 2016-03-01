@@ -61,4 +61,8 @@ Along with the standard events, quickspot will also fire the following additiona
 * `quickspot:select` - Fired whenever a result in quickspot is selected
 * `quickspot:result` - Fired whenever a quickspot displays some results
 * `quickspot:noresults` - Fired whenever a quickspot search finds no results.    
-* `quickspot:resultsfound` - Fired whenever a quickspot search returns results.     
+* `quickspot:resultsfound` - Fired whenever a quickspot search returns results.    
+
+A few additional options can be accessed via setting certain attributes on the search data object. These can either be set within callbacks, or as part of the inital data set.
+
+* `qs_result_class` - When set, the classname stored in the value will be used on the rendered result's a element.

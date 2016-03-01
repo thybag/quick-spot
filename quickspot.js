@@ -389,6 +389,7 @@
 			var fragment = document.createDocumentFragment();
 			var tmp; // reuse object, JS likes this
 			var result_str;
+			var classes;
 
 			// if max_results is provided, slice off unwanted results (0 = show all, don't bother slicing if array is smaller than maxResults)
 			if(typeof here.options.max_results === 'number' && here.options.max_results !== 0 && results.length > here.options.max_results){
@@ -417,7 +418,11 @@
 				tmp.innerHTML = result_str;
 
 				// Apply classes
-				tmp.className = 'quickspot-result quickspot-result-'+idx;
+				classes = 'quickspot-result quickspot-result-'+idx;
+				if(typeof result.qs_result_class === 'string'){
+					classes = result.qs_result_class + ' ' + classes;
+				}
+				tmp.className = classes;
 
 				// Attach listener (click)
 				util.addListener(tmp, 'click', function(event){ 
