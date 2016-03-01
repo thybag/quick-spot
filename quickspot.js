@@ -70,6 +70,7 @@
 		 * @param options.loaded - callback fired when data store has been loaded
 		 * @param options.ready - callback fired when quick-spot up & running
 		 * @param options.data_pre_parse - callback provided with raw data object & options - can be used to rearrange data to work with quick-spot (if needed)
+		 * @param options.parse_results - Manipulate result array before render.
 		 *
 		 ** Events
 		 * quickspot:start - search is triggered
@@ -77,9 +78,8 @@
 		 * quickspot:activate - quick-spot gets focus
 		 * quickspot:select - new result gets focus
 		 * quickspot:result - result is shown
-		 * quickspot:resultsfound -search completes with results
+		 * quickspot:resultsfound - search completes with results
 		 * quickspot:noresult - search completes with no results
-		 *
 		 */
 		methods.attach = function(options){
 
@@ -358,6 +358,11 @@
 		 */
 		methods.render_results = function(results){
 
+			// Manipulate result array before render?
+			if(typeof here.options.parse_results === "function"){
+				results = here.options.parse_results(results, here.options);
+			}
+
 			// If no results, don't show result box.
 			if(results.length === 0){
 
@@ -381,7 +386,7 @@
 			}
 
 			// If we have results, append required items in to a documentFragment (to avoid unnecessary DOM reflows that will slow this down)
-			var fragment =  document.createDocumentFragment();
+			var fragment = document.createDocumentFragment();
 			var tmp; // reuse object, JS likes this
 			var result_str;
 
