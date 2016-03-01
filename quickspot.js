@@ -50,7 +50,7 @@
 		 ** Advanced configuration
 		 * @param options.key_value - attribute containing key bit of information (name used by default)
 		 * @param options.display_name - name of attribute to display in box (uses key_value by default)
-		 * @param options.search_on - array of attributes to search on (will use all if not specified)
+		 * @param options.search_on - array of attributes to search on (Quickspot will search on all attributes in an object if this is not provided)
 		 * @param options.disable_occurrence_weighting - if true, occurrences will not weight results
 		 * @param options.safeload - QS will attempt to attach instantly, rather than waiting for document load
 		 * @param options.hide_on_blur - Hide listing on blur (true by default)
