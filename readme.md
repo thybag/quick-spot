@@ -7,7 +7,7 @@ This Quick-spot is free to use and licensed under the MIT license.
 ## Quick start
 
 1. Download a copy of quickspot.js
-2. include quickspot.js in to your webpage
+2. include quickspot.js in to your webp age
 3. call `quickspot.attach({"url":"<path_to_JSON>", "target":"<id_of_searchbox>"});`
 
 See the demo for more information. Tested in Chrome, Firefox and IE7+
@@ -18,33 +18,51 @@ Quickspot is designed to do an in-memory search on a provided array of JSON obje
 
 At minimum both `target` and either `data` or `url` must be provided to the quickspot attach method.
 
-If a json object has a "url" attribute quick-spot will attempt to redirect to that URL when the result is clicked. If no url attribute is found quickspot will instead simply populate the attached search box with the value it has found (similar to a type-ahead). If you would like to do somthing more clever here, please refer to option.clickhandler.
+If a JSON object has a "url" attribute quick-spot will attempt to redirect to that URL when the result is clicked. If no url attribute is found quick spot will instead simply populate the attached search box with the value it has found (similar to a type-ahead). If you would like to do something more clever here, please refer to `option.click_handler`.
 
-**option.target** - The target option specifies the ID of the searchbox you would like quickspot to attach a search to.
-
-**option.url** - The url option can be used to provide the path to the JSON file containing the information you wish to search on.
-
-**option.data** -The data option can be used to pass a JSON directly in to the attach method.
+* `option.target` - The target option specifies the ID of the search box you would like quickspot to attach a search to.
+* `option.url` - The url option can be used to provide the path to the JSON file containing the information you wish to search on.
+* `option.data` -The data option can be used to pass a JSON directly in to the attach method.
 
 ## Advanced configuration
 
-Quickspot impliments a number of advanced methods which can be used to futher customise how quick-spot functions.
+QuickSpot implements a number of advanced methods which can be used to further customise how quick-spot functions.
 
-**option.key_value** - Use this to specify the name of the primary attribute in the objects. For example name/title. Results matching this value will be ranked higher. By default quickspot assumes this attribute is called "name".
+* `option.key_value` - Use this to specify the name of the primary attribute in the objects. For example name/title. Results matching this value will be ranked higher. By default quickspot assumes this attribute is called "name".
+* `option.display_name` - If you would like search results to show a value other than what is contained in key_value (normally "name") set this attribute here.
+* `options.search_on` - Array of attributes in the JSON data set to search on (Quickspot will search on all attributes in an object if this is not provided)
+* `disable_occurrence_weighting` - If set to true, multiple occurrences of the search string in a result, will no longer increase its ranking in the results.
+* `options.safeload` - If set to false, Quickspot will attempt to attach instantly, rather than waiting for document load event to fire.
+* `options.hide_on_blur` - Hide results listing on blur (true by default)
+* `options.results_container` - ID of element quickspot should use as container for results (by default will use quick-spot elements parent)
+* `options.prevent_headers` - Don't add custom headers such as X-Requested-With (Can be used to avoid an options requests being made to the data API)
+* `options.auto_highlight` - Automatically attempt to highlight search text in result items. (true|false - default false)
+* `options.max_results` - Maximum results to display at any one time (applied after searching/ordering, results after the cut off will not be rendered. 0 = show unlimited results)
+* `options.screenreader` - Experimental screen reader helper (true|false)
 
-**option.display_name** - If you would like search results to show a value other than what is contained in key_value (normally "name") set this attribute here.
+In addition you can also extend quickspots base functionality significantly through the use of the following callbacks.
 
-**option.display_handler** - Provide a callback here to fully control how each item displays in the search results. The callback with be passed the json object for the given item. Full html can be used here.
+* `options.display_handler(current_item_data, quickspot_instance)` - Callback to override how search items are displayed. 
+* `options.click_handler(clicked_item_data, quickspot_instance)` - Callback is called whenever an item is clicked/activated.
+* `options.gen_score(item_data, search_text)` - Callback to override scoring mechanism. (The higher the number number returned, the higher in results order this item will be)
+* `options.no_results(quickspot_instance, search_text)` - Markup to render if no results are found. (Defaults to false. If set to false, this does nothing)
+* `options.no_results_click(search_text, quickspot_instance)` - Callback to handle what happens when a user attempts to click/hit enter when no results have been found.
+* `options.data_pre_parse(raw_data_set, quickspot_options)` - Callback allows preprocessing of data before its set in to quickspot's data store. Can be used to rearrange data to work with quick-spot if needed.
+* `options.parse_results(search_results, quickspot_options)` - Manipulate the result array before render.
+* `options.no_search_handler(searchbox_dom_element, quickspot_instance)` - Callback is run whenever searchbox becomes empty
+* `options.loaded(datastore)` - Callback is fired when a data store has been loaded
+* `options.ready(quickspot_instance)` - Callback fired when quick-spot is fully up & running
 
-**option.click_handler** - A callback to define what should happen when an item is selected. This callback is passed the json object for the selected item.
+Along with the standard events, quickspot will also fire the following additional events on the input it is attached to.
 
-**option.search_on** - An array defining which attributes in your JSON quickspot should pay attention to. If this is not set quickspot will look at all of them.
+* `quickspot:start` - Fired each time a quickspot search is triggered.    
+* `quickspot:end` - Fired each time a quickspot search completes.   
+* `quickspot:activate` - Fired whenever quickspot gets focus.
+* `quickspot:select` - Fired whenever a result in quickspot is selected
+* `quickspot:result` - Fired whenever a quickspot displays some results
+* `quickspot:noresults` - Fired whenever a quickspot search finds no results.    
+* `quickspot:resultsfound` - Fired whenever a quickspot search returns results.    
 
-**options.gen_score** - Callback to set custom ranking algorithm. Is passed a single result object and the search string & returns an int. The higher the number the higher the result will be shown.
+A few additional options can be accessed via setting certain attributes on the search data object. These can either be set within callbacks, or as part of the inital data set.
 
-In addition to the standard events, quickspot will also fire 4 additional events on the input it is attached to.
-
-**quickspot:start** - Fired each time a quickspot search is invoked.    
-**quickspot:end**	- Fired each time a quickspot search completes.    
-**quickspot:noresults** - Fired whenever a quickspot search finds no results.    
-**quickspot:resultsfound** - Fired whenever a quickspot search returns results.     
+* `qs_result_class` - When set, the classname stored in the value will be used on the rendered result's a element.
