@@ -42,7 +42,7 @@
 		 * Attach a new quick-spot search to the page
 		 *
 		 ** Required
-		 * @param options.target - DOM node or ID of element to use
+		 * @param options.target - DOM node or ID of element to use (or callback that returns this)
 		 *
 		 ** One of
 		 * @param options.url - URL of JSON feed to search with
@@ -159,9 +159,6 @@
 				}
 				
 			}
-
-
-
 
 			// Attach listeners
 			util.addListener(here.target, 	'keydown', 	methods.handleKeyUp);
