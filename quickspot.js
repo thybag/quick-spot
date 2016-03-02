@@ -973,12 +973,13 @@
 			}
 		};
 
+		xmlhttp.open("GET", options.url, true);
+
 		//Add standard AJAX header (unless prevent headers is set and is true)
 		if(typeof options.prevent_headers === 'undefined' || options.prevent_headers === false){
 			xmlhttp.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		}
-
-		xmlhttp.open("GET", options.url, true);
+		
 		xmlhttp.send(null);
 	};
 
@@ -1072,7 +1073,7 @@
 		// if nothing is provided
 		return false;
 	};
-	
+
 }).call({});
 
 // Compatibility layer
