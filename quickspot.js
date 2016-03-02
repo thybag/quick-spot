@@ -1,11 +1,11 @@
 /*!
- * Quickspot a fast flexible JSON powered in memory search.
+ * Quick-spot a fast flexible JSON powered in memory search.
  *
  * @author Carl Saggs
  * @repo https://github.com/thybag/quick-spot
  */
  (function(){
-	// Privatly scoped quick spot object (we talk to the real world (global scope) via the attach method)
+	// Privately scoped quick spot object (we talk to the real world (global scope) via the attach method)
 	var quickspot = function()
 	{
 		// Internal datastore
@@ -14,9 +14,9 @@
 		// Internal data
 		this.results = [];
 		this.selectedIndex = 0; // index of currently selected result
-		this.target = null; 	// input acting as searchbox
-		this.dom = null;		// ref to search results dom object
-		this.container = null;  // ref to container dom object
+		this.target = null; 	// input acting as search box
+		this.dom = null;		// ref to search results DOM object
+		this.container = null;  // ref to container DOM object
 		this.lastValue = '';	// last searched value
 
 		// "here" is kinda a global "this" for quickspot
@@ -351,9 +351,9 @@
 
 			if(key==13||key==38||key==40){
 				if (event.preventDefault) { 
-				    event.preventDefault(); 
+					event.preventDefault(); 
 				} else {
-				    event.returnValue = false;
+					event.returnValue = false;
 				}
 			}
 		};
