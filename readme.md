@@ -2,7 +2,7 @@
 
 Quickspot is a fast, flexible JSON powered in-memory search. 
 
-This Quick-spot is free to use and licensed under the MIT license.
+This Quickspot is free to use and licensed under the MIT license.
 
 ## Quick start
 
@@ -10,9 +10,7 @@ This Quick-spot is free to use and licensed under the MIT license.
 2. Include `quickspot.js` in to your web page.
 3. call `quickspot.attach({"url":"<path_to_JSON>", "target":"<id_of_searchbox>"});`
 
-or to install with [Bower](http://bower.io/) run `bower install quick-spot`
-
-Please see the demo page for some more examples.
+Alternately to install using [Bower](http://bower.io/) run `bower install quick-spot`
 
 Quickspot is tested to have full support for Chrome, Firefox, Safari and IE9+.
 IE7 and IE8 also work although the custom events are unsupported.
@@ -23,7 +21,7 @@ Quickspot is designed to quickly perform an in-memory search on an array of JSON
 
 At minimum both `target` and either `data` or `url` must be provided to the quickspot attach method.
 
-If a JSON object has a "url" attribute quick-spot will attempt to redirect to that URL when the result is clicked. If no url attribute is found quick spot will instead simply populate the attached search box with the value it has found (similar to a type-ahead). If you would like to do something more clever here, please refer to `option.click_handler`.
+If a JSON object has a "url" attribute quick-spot will attempt to redirect to that URL when the result is clicked. If no URL attribute is found quick spot will instead simply populate the attached search box with the value it has found (similar to a type-ahead). If you would like to do something more clever here, please refer to `option.click_handler`.
 
 * `option.target` - The target option should either be the DOM node, or the ID of the DOM node, for the search box you would like quickspot to attach a search to. (Can also be a callback)
 * `option.url` - The url option can be used to provide the path to the JSON file containing the information you wish to search on.
@@ -54,7 +52,7 @@ In addition you can also extend quickspots base functionality significantly thro
 * `options.no_results_click(search_text, quickspot_instance)` - Callback to handle what happens when a user attempts to click/hit enter when no results have been found.
 * `options.data_pre_parse(raw_data_set, quickspot_options)` - Callback allows preprocessing of data before its set in to quickspot's data store. Can be used to rearrange data to work with quick-spot if needed.
 * `options.parse_results(search_results, quickspot_options)` - Manipulate the result array before render.
-* `options.no_search_handler(searchbox_dom_element, quickspot_instance)` - Callback is run whenever searchbox becomes empty
+* `options.no_search_handler(searchbox_dom_element, quickspot_instance)` - Callback is run whenever the search box becomes empty
 * `options.loaded(datastore)` - Callback is fired when a data store has been loaded
 * `options.ready(quickspot_instance)` - Callback fired when quick-spot is fully up & running
 * `options.results_header` - Header for results container (can be Node/ID/raw html or callback returning one of the previous)
