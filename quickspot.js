@@ -16,6 +16,7 @@
 		this.selectedIndex = 0; // index of currently selected result
 		this.target = null; 	// input acting as searchbox
 		this.dom = null;		// ref to search results dom object
+		this.container = null;  // ref to container dom object
 		this.lastValue = '';	// last searched value
 
 		// here is kinda a global "this" for quickspot
@@ -41,7 +42,7 @@
 		 * Attach a new quick-spot search to the page
 		 *
 		 ** Required
-		 * @param options.target - ID of element to use
+		 * @param options.target - DOM node or ID of element to use
 		 *
 		 ** One of
 		 * @param options.url - URL of JSON feed to search with
@@ -54,7 +55,7 @@
 		 * @param options.disable_occurrence_weighting - if true, occurrences will not weight results
 		 * @param options.safeload - QS will attempt to attach instantly, rather than waiting for document load
 		 * @param options.hide_on_blur - Hide listing on blur (true by default)
-		 * @param options.results_container - id of contain quick-spot results will show in (by default will use quick-spot elements parent)
+		 * @param options.results_container - DOM node or ID for container quick-spot results will be shown in (by default will use the quick-spot elements parent)
 		 * @param options.prevent_headers - Don't add custom headers such as X-Requested-With (will avoid options requests)
 		 * @param options.auto_highlight - Automatically attempt to highlight search text in result items. (true|false - default false)
 		 * @param options.max_results - Maximum results to display at any one time (after searching/ordering, results after the cut off won't be rendered. 0 = unlimited)
@@ -71,6 +72,8 @@
 		 * @param options.ready - callback fired when quick-spot up & running
 		 * @param options.data_pre_parse - callback provided with raw data object & options - can be used to rearrange data to work with quick-spot (if needed)
 		 * @param options.parse_results - Manipulate result array before render.
+		 * @param options.results_header - Callback that returns either a dom element or markup for the results box header
+		 * @param options.results_footer - Callback that returns either a dom element or markup for the results box footer
 		 *
 		 ** Events
 		 * quickspot:start - search is triggered
@@ -93,7 +96,7 @@
 			}
 
 			// Get target
-			here.target = document.getElementById(here.options.target);
+			here.target = methods.get_option_contents_as_node(here.options.target, false);
 			if(!here.target){
 				console.log("Error: Target ID could not be found");
 				return;
@@ -117,17 +120,48 @@
 				return;
 			}
 			
-			// Setup basic Dom stuff
+			// Setup basic DOM stuff for results
 			here.dom = document.createElement('div');
 			here.dom.className='quickspot-results';
-			here.dom.setAttribute("tabindex","100");
-			here.dom.style.display = 'none';
 			
+			// Get container
 			if(typeof here.options.results_container == 'undefined'){
-				here.target.parentNode.appendChild(here.dom);
+				// Create QS container and add it to the DOM
+				here.container = document.createElement('div');
+				here.target.parentNode.appendChild(here.container);
 			}else{
-				document.getElementById(here.options.results_container).appendChild(here.dom);
+				// use existing QS container
+				here.container = methods.get_option_contents_as_node(here.options.results_container, false);
 			}
+
+			// Set container attributes
+			here.container.setAttribute("tabindex","100");
+			here.container.style.display = 'none';
+			here.container.className = 'quickspot-results-container';
+
+			// Attach header element if one exists
+			if(typeof options.results_header !== 'undefined'){
+				var header = methods.get_option_contents_as_node(options.results_header, true);
+				if(footer){
+					here.container.appendChild(header);
+				}
+			}
+
+			// Add the results object to the container
+			here.container.appendChild(here.dom);
+
+			// Attach footer element if one exists
+			if(typeof options.results_footer !== 'undefined'){
+				// Attempt to extract markup
+				var footer = methods.get_option_contents_as_node(options.results_footer, true);
+				if(footer){
+					here.container.appendChild(footer);
+				}
+				
+			}
+
+
+
 
 			// Attach listeners
 			util.addListener(here.target, 	'keydown', 	methods.handleKeyUp);
@@ -145,6 +179,52 @@
 			if(typeof options.screenreader !== 'undefined' && options.screenreader === true){
 				methods.screenreaderHelper();
 			}
+		}
+
+		/**
+		 * get_option_contents_as_node
+		 *
+		 * Takes a value and attempts to figure out what DOM node it refers to. Value can an existing DOM node, ID, or string of HTML markup - or even a callback which returns previous types
+		 *
+		 * @param option - value to extract in to a DOM node
+		 * @param allow_raw_html - allow a string fo HTML to be turned in to a DOM node (if not set, the node must already exist)
+		 *
+		 * @return DOM Node | false
+		 */
+		methods.get_option_contents_as_node = function(option, allow_raw_html){
+			// If option is a function, call as callback in order to get result
+			var node;
+			var option = (typeof option === 'function') ? option(here) : option;
+
+			// Is this a valid node already?
+			if(typeof option === 'object' && option.nodeType && option.nodeType === 1){
+				return option;
+			}
+			// Is it a string?
+			if(typeof option === 'string'){
+
+				// If this has no spaces, it may be an ID?
+				if(option.indexOf(' ') === -1){
+					// Remove starting #, if it has one
+					node = (option.indexOf('#') === 1) ? document.getElementById(option.substring(1)) : document.getElementById(option);
+					// if we found somthing, return it
+					if(node !== null){
+						return node;
+					}
+				}
+
+				// Okay, doesn't look like that was an ID. 
+				// If allow_raw_html is allowed, lets just assume this was some markup in a string
+				// and create a node for it.
+				if(typeof allow_raw_html !== 'undefined' && allow_raw_html){
+					node = document.createElement("div");
+					node.innerHTML = option;
+					return node;
+				} 
+			}
+
+			// No luck? return false
+			return false;
 		}
 
 		/**
@@ -199,7 +279,7 @@
 				}
 				//show nothing if no value
 				here.results = [];
-				here.dom.style.display = 'none';
+				methods.hideResults();
 				return;
 			}
 
@@ -209,7 +289,7 @@
 			// Avoid searching if input hasn't changed.
 			// Just reshown what we have
 			if(here.lastValue == search){
-				here.dom.style.display = 'block';
+				methods.showResults();
 				util.triggerEvent(here.target, "quickspot:result");
 				return;
 			}
@@ -296,7 +376,7 @@
 			setTimeout(function(){
 				if(here.dom != document.activeElement && here.target != document.activeElement){
 					//close if target is neither results or searchbox
-					here.dom.style.display = 'none';
+					methods.hideResults();
 				}
 			},150);
 		}
@@ -377,7 +457,7 @@
 					}
 				}else{
 					// show nothing
-					here.dom.style.display = "none";
+					methods.hideResults();
 				}
 				
 				// event for no results found
@@ -443,7 +523,7 @@
 			here.dom.innerHTML ='';
 
 			// Attach fragment
-			here.dom.style.display = 'block';
+			methods.showResults();
 			here.dom.appendChild(fragment);
 
 			// Select the initial value.
@@ -478,7 +558,7 @@
 				}else{
 					//else assume we are just a typeahead?
 					here.target.value = result[here.options.display_name];
-					here.dom.style.display = 'none';
+					methods.hideResults();
 				}
 			}
 		}
@@ -502,6 +582,19 @@
 		methods.initialise_data = function(data){
 			here.datastore = datastore.create(data, here.options);
 			if(typeof here.options.loaded !== 'undefined') here.options.loaded(here.datastore);
+		}
+
+		/**
+		 * Hide QS results
+		 */
+		methods.hideResults = function(){
+			here.container.style.display = 'none';
+		}
+		/**
+		 * Show QS results
+		 */
+		methods.showResults = function(){
+			here.container.style.display = 'block';
 		}
 
 		// Default configurtion

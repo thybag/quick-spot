@@ -20,7 +20,7 @@ At minimum both `target` and either `data` or `url` must be provided to the quic
 
 If a JSON object has a "url" attribute quick-spot will attempt to redirect to that URL when the result is clicked. If no url attribute is found quick spot will instead simply populate the attached search box with the value it has found (similar to a type-ahead). If you would like to do something more clever here, please refer to `option.click_handler`.
 
-* `option.target` - The target option specifies the ID of the search box you would like quickspot to attach a search to.
+* `option.target` - The target option should either be the DOM node, or the ID of the DOM node, for the search box you would like quickspot to attach a search to.
 * `option.url` - The url option can be used to provide the path to the JSON file containing the information you wish to search on.
 * `option.data` -The data option can be used to pass a JSON directly in to the attach method.
 
