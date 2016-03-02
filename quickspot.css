@@ -8,27 +8,28 @@
 	margin-top:5px;
 	padding:4px 6px;
 }
-.quickspot-results {
+.quickspot-results-container {
 	width:340px;
-	background:#fff;
 	position:absolute;
 	top:35px;
 	left:0;
+	z-index:9999;
+	border-radius: 0px;
+	border:solid 1px #08c;
+	background:#fff;
+}
+.quickspot-results-container .quickspot-results {
+
 	max-height:380px;
 	overflow:auto;
-	border:solid 1px #08c;
-	border-radius: 4px;
-	border-top-left-radius: 0px;
-	z-index:9999;
-
 }
-.quickspot-results .quickspot-result {
+.quickspot-results-container .quickspot-results .quickspot-result {
 	padding:8px 10px;
 	display:block;
 	text-decoration: none;
 	cursor:pointer;
 }
-.quickspot-results .quickspot-result.selected{
+.quickspot-results-container .quickspot-results .quickspot-result.selected{
 	background:#08c;
 	color:#fff;
 }

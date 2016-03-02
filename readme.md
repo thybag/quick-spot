@@ -20,7 +20,7 @@ At minimum both `target` and either `data` or `url` must be provided to the quic
 
 If a JSON object has a "url" attribute quick-spot will attempt to redirect to that URL when the result is clicked. If no url attribute is found quick spot will instead simply populate the attached search box with the value it has found (similar to a type-ahead). If you would like to do something more clever here, please refer to `option.click_handler`.
 
-* `option.target` - The target option specifies the ID of the search box you would like quickspot to attach a search to.
+* `option.target` - The target option should either be the DOM node, or the ID of the DOM node, for the search box you would like quickspot to attach a search to. (Can also be a callback)
 * `option.url` - The url option can be used to provide the path to the JSON file containing the information you wish to search on.
 * `option.data` -The data option can be used to pass a JSON directly in to the attach method.
 
@@ -34,7 +34,7 @@ QuickSpot implements a number of advanced methods which can be used to further c
 * `disable_occurrence_weighting` - If set to true, multiple occurrences of the search string in a result, will no longer increase its ranking in the results.
 * `options.safeload` - If set to false, Quickspot will attempt to attach instantly, rather than waiting for document load event to fire.
 * `options.hide_on_blur` - Hide results listing on blur (true by default)
-* `options.results_container` - ID of element quickspot should use as container for results (by default will use quick-spot elements parent)
+* `options.results_container` - ID or Node of element quickspot should use as container for results (by default will use quick-spot elements parent)
 * `options.prevent_headers` - Don't add custom headers such as X-Requested-With (Can be used to avoid an options requests being made to the data API)
 * `options.auto_highlight` - Automatically attempt to highlight search text in result items. (true|false - default false)
 * `options.max_results` - Maximum results to display at any one time (applied after searching/ordering, results after the cut off will not be rendered. 0 = show unlimited results)
@@ -52,6 +52,8 @@ In addition you can also extend quickspots base functionality significantly thro
 * `options.no_search_handler(searchbox_dom_element, quickspot_instance)` - Callback is run whenever searchbox becomes empty
 * `options.loaded(datastore)` - Callback is fired when a data store has been loaded
 * `options.ready(quickspot_instance)` - Callback fired when quick-spot is fully up & running
+* `options.results_header` - Header for results container (can be Node/ID/raw html or callback returning one of the previous)
+* `options.results_footer` - Footer for results container (can be Node/ID/raw html or callback returning one of the previous)
 
 Along with the standard events, quickspot will also fire the following additional events on the input it is attached to.
 
