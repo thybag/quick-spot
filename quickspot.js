@@ -995,32 +995,27 @@
 			var evt = document.createEvent("HTMLEvents");
 			evt.initEvent(event_name, true, true);
 			obj.dispatchEvent(evt);
-		}else{
-			//IE 8/7 cannot fire custom events so this code is no help :(
-			//var evt = document.createEventObject();
-			//evt.eventType = 'on'+event_name;
-			//obj.fireEvent(evt.eventType, evt);
 		}
 	};
 
 	// Add a CSS class to a DOM element
-	util.addClass = function(node,nclass){
-		if(node===null) return;
-		if(!util.hasClass(node,nclass)){
+	util.addClass = function(node, nclass){
+		if(typeof node === 'undefined' || node === null) return;
+		if(!util.hasClass(node, nclass)){
 			node.className = node.className+' '+nclass;
 		}
 	};
 
-	// Remove a CSS class from a dom element
+	// Remove a CSS class from a DOM element
 	util.removeClass = function(node, nclass){
-		if(node===null) return;
+		if(typeof node === 'undefined' || node === null) return;
 		node.className = node.className.replace(new RegExp('(^|\\s)'+nclass+'(\\s|$)'),'');
 		return;
 	};
 
 	// Find out if a DOM element has a CSS class
 	util.hasClass = function(node, nclass){
-		if(node===null) return;
+		if(typeof node === 'undefined' || node === null) return;
 		return (node.className.match(new RegExp('(^|\\s)'+nclass+'(\\s|$)')) !== null);
 	};
 

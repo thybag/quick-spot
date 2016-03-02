@@ -7,14 +7,19 @@ This Quick-spot is free to use and licensed under the MIT license.
 ## Quick start
 
 1. Download a copy of quickspot.js
-2. include quickspot.js in to your webp age
+2. Include `quickspot.js` in to your web page.
 3. call `quickspot.attach({"url":"<path_to_JSON>", "target":"<id_of_searchbox>"});`
 
-See the demo for more information. Tested in Chrome, Firefox and IE7+
+or to install with [Bower](http://bower.io/) run `bower install quick-spot`
+
+Please see the demo page for some more examples.
+
+Quickspot is tested to have full support for Chrome, Firefox, Safari and IE9+.
+IE7 and IE8 also work although the custom events are unsupported.
 
 ## Basic configuration
 
-Quickspot is designed to do an in-memory search on a provided array of JSON objects. By default it assumes the title of each item will be in an attribute called "name". (See: option.key_value if this is not the case.)
+Quickspot is designed to quickly perform an in-memory search on an array of JSON objects. By default it assumes the title of each item will be in an attribute called `name`. (See: `option.key_value` if this is not the case.)
 
 At minimum both `target` and either `data` or `url` must be provided to the quickspot attach method.
 
@@ -57,14 +62,14 @@ In addition you can also extend quickspots base functionality significantly thro
 
 Along with the standard events, quickspot will also fire the following additional events on the input it is attached to.
 
-* `quickspot:start` - Fired each time a quickspot search is triggered.    
-* `quickspot:end` - Fired each time a quickspot search completes.   
+* `quickspot:start` - Fired each time a quickspot search is triggered.
+* `quickspot:end` - Fired each time a quickspot search completes.
 * `quickspot:activate` - Fired whenever quickspot gets focus.
 * `quickspot:select` - Fired whenever a result in quickspot is selected
 * `quickspot:result` - Fired whenever a quickspot displays some results
-* `quickspot:noresults` - Fired whenever a quickspot search finds no results.    
-* `quickspot:resultsfound` - Fired whenever a quickspot search returns results.    
+* `quickspot:noresults` - Fired whenever a quickspot search finds no results.
+* `quickspot:resultsfound` - Fired whenever a quickspot search returns results.
 
-A few additional options can be accessed via setting certain attributes on the search data object. These can either be set within callbacks, or as part of the inital data set.
+A few additional options can be accessed via setting certain attributes on the search data object. These can either be set within callbacks, or as part of the initial data set.
 
-* `qs_result_class` - When set, the classname stored in the value will be used on the rendered result's a element.
+* `qs_result_class` - When set, the class name stored in the attribute will be used as a class on the rendered result's anchor element.
