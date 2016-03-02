@@ -19,7 +19,7 @@
 		this.container = null;  // ref to container dom object
 		this.lastValue = '';	// last searched value
 
-		// here is kinda a global "this" for quickspot
+		// "here" is kinda a global "this" for quickspot
 		var here = this;
 
 		// Public version of attach.
@@ -33,8 +33,7 @@
 					methods.attach(options);
 				});
 			}
-
-		}
+		};
 
 		var methods = {};
 
@@ -142,7 +141,7 @@
 			// Attach header element if one exists
 			if(typeof options.results_header !== 'undefined'){
 				var header = methods.get_option_contents_as_node(options.results_header, true);
-				if(footer){
+				if(header){
 					here.container.appendChild(header);
 				}
 			}
@@ -176,7 +175,7 @@
 			if(typeof options.screenreader !== 'undefined' && options.screenreader === true){
 				methods.screenreaderHelper();
 			}
-		}
+		};
 
 		/**
 		 * get_option_contents_as_node
@@ -189,9 +188,11 @@
 		 * @return DOM Node | false
 		 */
 		methods.get_option_contents_as_node = function(option, allow_raw_html){
-			// If option is a function, call as callback in order to get result
+			
 			var node;
-			var option = (typeof option === 'function') ? option(here) : option;
+
+			// If option is a function, call as callback in order to get result
+			option = (typeof option === 'function') ? option(here) : option;
 
 			// Is this a valid node already?
 			if(typeof option === 'object' && option.nodeType && option.nodeType === 1){
@@ -222,7 +223,7 @@
 
 			// No luck? return false
 			return false;
-		}
+		};
 
 		/**
 		 * Start screenreaderHelper for use in supported browsers
@@ -260,7 +261,7 @@
 			util.addListener(here.target, 'quickspot:activate', function(){
 				reader.innerHTML = "Loading...";
 			});
-		}
+		};
 	
 		/**
 		 * Find and display results for a given search term
@@ -269,7 +270,7 @@
 		 */
 		methods.findResultsFor = function(search){
 
-			//dont search on blank
+			// Don't search on blank
 			if(search == ''){
 				if(typeof here.options.no_search_handler === 'function'){
 					here.options.no_search_handler(here.dom, here);
@@ -308,7 +309,7 @@
 			// Event for quickspot end
 			util.triggerEvent(here.target, "quickspot:end");
 			util.triggerEvent(here.target, "quickspot:result");
-		}
+		};
 
 		/**
 		 * On: Quick-spot focus
@@ -316,7 +317,7 @@
 		 */
 		methods.handleFocus = function(event){
 			methods.findResultsFor(here.target.value);
-		}
+		};
 
 		/**
 		 * On: Quick-spot search typed (keydown)
@@ -324,7 +325,7 @@
 		 */
 		methods.handleKeyDown = function(event){
 			methods.findResultsFor(here.target.value);
-		}
+		};
 
 		/**
 		 * On: Quick-spot search typed (keyup)
@@ -355,7 +356,7 @@
 				    event.returnValue = false;
 				}
 			}
-		}
+		};
 
 		/**
 		 * On: Quick-spot click off (blur)
@@ -377,7 +378,7 @@
 					methods.hideResults();
 				}
 			},150);
-		}
+		};
 
 		/**
 		 * Select index
@@ -401,7 +402,7 @@
 
 			//Select new item
 			util.addClass(here.dom.children[here.selectedIndex], 'selected');
-		}
+		};
 
 		/**
 		 * Scroll results box to show currently selected item
@@ -410,7 +411,7 @@
 		 */
 		methods.scrollResults = function(direction){
 			// Get basic DOM data (assume results all have same height)
-			results_height = here.dom.clientHeight;
+			var results_height = here.dom.clientHeight;
 
 			// Get current node, plus its offset & height
 			var current_result = here.dom.childNodes[here.selectedIndex];
@@ -427,7 +428,7 @@
 			if(direction == 'up' && current_offset < here.dom.scrollTop){
 				here.dom.scrollTop = current_offset;
 			}
-		}
+		};
 
 		/**
 		 * Render search results to user
@@ -459,7 +460,7 @@
 				}
 				
 				// event for no results found
-				util.triggerEvent(here.target,"quickspot:noresults");
+				util.triggerEvent(here.target, "quickspot:noresults");
 				return;
 			}
 
@@ -485,7 +486,7 @@
 				}	
 
 				// Automatically highlight matching portion of text
-				if(typeof here.options.auto_highlight !== 'undefined' && here.options.auto_highlight == true){
+				if(typeof here.options.auto_highlight !== 'undefined' && here.options.auto_highlight === true){
 					// Attempt to avoid sticking strong's in the middle of html tags
 					// http://stackoverflow.com/questions/18621568/regex-replace-text-outside-html-tags#answer-18622606
 					result_str = result_str.replace(RegExp('('+here.lastValue+')(?![^<]*>|[^<>]*<\/)', 'i'), '<strong>$1</strong>');
@@ -515,7 +516,7 @@
 			});
 
 			//event when results found
-			util.triggerEvent(here.target,"quickspot:resultsfound");
+			util.triggerEvent(here.target, "quickspot:resultsfound");
 
 			// Clear old data from DOM.
 			here.dom.innerHTML ='';
@@ -526,7 +527,7 @@
 
 			// Select the initial value.
 			methods.selectIndex(this.selectedIndex);
-		}
+		};
 
 		/**
 		 * handleSelection handles action from click (or enter key press)
@@ -550,16 +551,16 @@
 				here.options.click_handler(result, here);
 			}else{
 
-				if(typeof result.url !== 'undefined'){
-					//If url was provided, go there
-					window.location = url;
+				if(typeof result.url === 'string'){
+					// If URL was provided, go there
+					window.location.href = result.url;
 				}else{
-					//else assume we are just a typeahead?
+					// else assume we are just a typeahead?
 					here.target.value = result[here.options.display_name];
 					methods.hideResults();
 				}
 			}
-		}
+		};
 		
 		/**
 		 * handle no results
@@ -569,7 +570,7 @@
 		 */
 		methods.no_results =  function(self, search){
 			return "<a class='quickspot-result selected'>No results...</a>";
-		}
+		};
 
 		/**
 		 * Initialise data
@@ -580,20 +581,20 @@
 		methods.initialise_data = function(data){
 			here.datastore = datastore.create(data, here.options);
 			if(typeof here.options.loaded !== 'undefined') here.options.loaded(here.datastore);
-		}
+		};
 
 		/**
 		 * Hide QS results
 		 */
 		methods.hideResults = function(){
 			here.container.style.display = 'none';
-		}
+		};
 		/**
 		 * Show QS results
 		 */
 		methods.showResults = function(){
 			here.container.style.display = 'block';
-		}
+		};
 
 		// Default configurtion
 		this.options = {
@@ -601,7 +602,7 @@
 			"no_results": methods.no_results,
 			"no_results_click": function(val, sbox){}
 		};
-	}
+	};
 	
 	/**
 	 * Datastore component.
@@ -621,8 +622,7 @@
 		this.data_filtered = [];
 		this.results = [];
 
-
-		// Accessor to primary "this" for internal objs
+		// Accesser to primary "this" for internal objs
 		var here = this;
 		// private methods
 		var ds = {};
@@ -631,23 +631,25 @@
 		 * Create
 		 *
 		 * Create a new datastore instance. The datastore will use the data and options to generate
-		 * an internal preproccessed reprention of the data in order to allow quicker searching
+		 * an internal preproccessed representation of the data in order to allow quicker searching
 		 * and filtering
 		 *
-		 * @param data raw json
+		 * @param data raw JSON
 		 * @param options
 		 */
 		ds.create = function(data, options){
 
 			// Merge passed in options into options obj
-			for(var i in options) here.options[i] = options[i];
+			for(var i in options){
+				here.options[i] = options[i];
+			} 
 			
 			// If no key value, use name.
 			if(!here.options.key_value){
 				here.options.key_value = 'name';
 			}
 
-			// Pre parse data (re arrange structure to allow searching if needed)
+			// Pre-parse data (re arrange structure to allow searching if needed)
 			if(typeof options.data_pre_parse === 'function'){
 				data = options.data_pre_parse(data, options);
 			} 
@@ -656,7 +658,11 @@
 			// keys will be thrown away
 			if(typeof data === 'object'){
 				var tmp = [];
-				for(var i in data) if (data.hasOwnProperty(i)) tmp.push(data[i]);
+				for(i in data){
+					if (data.hasOwnProperty(i)){
+						tmp.push(data[i]);
+					} 
+				} 
 				data = tmp;
 			}
 
@@ -664,13 +670,13 @@
 
 			// Loop through searchable items, adding all values that will need to be searched upon in to a
 			// string stored as __searchvalues. Either add everything or just what the user specifies.
-			for(var i = 0; i < data.length; i++){
+			for(i = 0; i < data.length; i++){
 				// If search_on exists use th as attributes list, else just use all of them
 				data[i] = ds.pre_process(data[i], attrs);
 			}
 			// Store in memory
 			here.data_filtered = here.data = data;
-		} 
+		};
 
 		/**
 		 * find
@@ -684,7 +690,7 @@
 			search = here.options.string_filter(search.toLowerCase());
 			this.results = ds.find(search, this.data_filtered, col);
 			return this;
-		}
+		};
 
 		/**
 		 * sort results by $str
@@ -697,7 +703,7 @@
 			search = here.options.string_filter(search.toLowerCase());
 			this.results = ds.sort_by_match(this.results, search);
 			return this;
-		}
+		};
 
 		/**
 		 * search 
@@ -709,7 +715,7 @@
 		this.search = function(search){
 			this.find(search).sort_results_by(search);
 			return this;
-		}
+		};
 
 		/**
 		 * filter data
@@ -729,7 +735,7 @@
 			}
 			
 			return this;
-		}
+		};
 
 		/**
 		 * Clear all filters applied to data.
@@ -738,7 +744,7 @@
 		this.clear_filters = function(){
 			this.data_filtered = this.data;
 			return this;
-		}
+		};
 
 		/**
 		 * Add additional data to datastore
@@ -747,13 +753,15 @@
 		this.add = function(data){
 
 			// If array, run this method on each individual item
-			if(typeof data === 'array'){
-				for(var i = 0 ;i < data.length; i++) this.add(data[i]);
+			if(data instanceof Array){
+				for(var i = 0; i < data.length; i++){
+					this.add(data[i]);
+				} 
 
 				return this;
 			}
 
-			// Else proccess data and add it to the data array
+			// Else process data and add it to the data array
 			var attrs = (typeof here.options.search_on !== 'undefined') ? here.options.search_on : false; 
 			
 			// Add data
@@ -763,7 +771,7 @@
 			this.data_filtered = this.data;
 
 			return this;
-		}
+		};
 
 		/**
 		 * get
@@ -772,7 +780,7 @@
 		 */
 		this.get = function(){
 			return this.results;
-		}
+		};
 
 		/**
 		 * pre_process an item to make it quickly searchable
@@ -781,16 +789,16 @@
 		 * @param attrs attributes to search on
 		 */
 		ds.pre_process = function(item, attrs){
-			var tmp = '';
+			var c, tmp = '';
 
 			if(attrs){
 				// grab only the attributes we want to search on
-				for(var c = 0; c < attrs.length; c++){
+				for(c = 0; c < attrs.length; c++){
 					tmp += ' ' + item[attrs[c]];
 				}
 			}else{
-				// just grab all the attribuites 
-				for(var c in item){
+				// just grab all the attributes 
+				for(c in item){
 					tmp += ' ' + item[c];
 				}
 			}
@@ -799,18 +807,18 @@
 			item.__keyvalue = here.options.string_filter(item[here.options.key_value].toLowerCase());
 
 			return item;
-		}
+		};
 
 		/**
 		 * find
 		 *
-		 * Looks through the json provided and returns any
+		 * Looks through the JSON provided and returns any
 		 * matching results as an array
 		 *
 		 * @param search string specifying what to search for
 		 * @param dataset to search on
 		 * @param column to use in search
-		 * @return array of ojects that match string
+		 * @return array of objects that match string
 		 */
 		ds.find = function(search, dataset, use_column){
 			var i = 0, itm, matches = [];
@@ -829,7 +837,8 @@
 			}
 			//return matching items
 			return matches;
-		}
+		};
+
 		/**
 		 * findBy func
 		 *
@@ -845,11 +854,11 @@
 			for(i=0; i < dataset.length; i++){
 				itm = dataset[i];
 				if(func(itm)){
-					matches.push(itm)
+					matches.push(itm);
 				} 
 			}
 			return matches;
-		}
+		};
 
 		/**
 		 * sort Results
@@ -864,11 +873,10 @@
 		ds.sort_by_match = function(results, search){
 			// Select either user defined score_handler, or default (built in) one
 			var score_handler = (typeof here.options.gen_score === 'undefined') ? ds.calculate_match_score : here.options.gen_score;
-			// Score each value (heigher==better match) for results sort
+			// Score each value (higher = better match) for results sort
 			for(var i=0;i<results.length;i++){
 				results[i].__score = score_handler(results[i], search);
-
-				results[i].__len_diff = Math.abs(search.length-results[i].__keyvalue.length);
+				results[i].__len_diff = Math.abs(search.length - results[i].__keyvalue.length);
 			}
 				
 			// Sort results based on score (higher=better)
@@ -886,7 +894,7 @@
 
 			// return them for rendering
 			return results;
-		}
+		};
 
 		/**
 		 * Calculate score
@@ -917,7 +925,7 @@
 			score += (idx === 0 && result.__keyvalue.length === search.length) ? 10 : 0;
 
 			return score;
-		}
+		};
 
 		ds.simplfy_strings = function(str){
 
@@ -928,21 +936,22 @@
 			str = str.replace(/\&/g, "and");
 
 			return str;
-		}
+		};
 
 		// Specify preset options later so methods all exist
 		this.options = {
 			"string_filter": ds.simplfy_strings,
 			"disable_occurrence_weighting": false
-		}
+		};
 
 		// Setup data store
 		ds.create(data, options);
-	}
+	};
+
 	// Static method, create a new data store.
 	datastore.create = function(data, options){
 		return new datastore(data, options);
-	}
+	};
 
 	/**
  	 * Util methods.
@@ -950,29 +959,35 @@
  	 * I am using these to avoid the need to have dependencies on any external frameworks (example:jQuery).
  	 */
 	var util = {};
+
 	// Perform an AJAX get of a provided url, and return the result to the specified callback.
 	util.ajaxGetJSON = function(options, callback){
-		try {var xmlhttp = window.XMLHttpRequest?new XMLHttpRequest(): new ActiveXObject("Microsoft.XMLHTTP");}  catch (e) { }
+		var xmlhttp = null;
+
+		try { xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP"); }  catch (e) { }
+
 		xmlhttp.onreadystatechange = function(){
 			if ((xmlhttp.readyState == 4) && (xmlhttp.status == 200)) {
-				//turn JSON in to real JS object & send it to the callback
+				// turn JSON in to real JS object & send it to the callback
 				callback(JSON.parse(xmlhttp.responseText));
 			}
-		}
-		xmlhttp.open("GET", options.url, true);
+		};
 
 		//Add standard AJAX header (unless prevent headers is set and is true)
-		if(typeof options.prevent_headers === 'undefined' || options.prevent_headers == false){
+		if(typeof options.prevent_headers === 'undefined' || options.prevent_headers === false){
 			xmlhttp.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		}
-		
+
+		xmlhttp.open("GET", options.url, true);
 		xmlhttp.send(null);
-	}
+	};
+
 	// AddListener (cross browser method to add an eventListener)
 	util.addListener = function(obj, event, callback){
 		// Proper way vs IE way
 		if(window.addEventListener){obj.addEventListener(event, callback, false);}else{obj.attachEvent('on'+event, callback);}
-	}
+	};
+
 	// Fire an Event
 	util.triggerEvent = function(obj, event_name){
 		if (document.createEvent) {
@@ -985,25 +1000,29 @@
 			//evt.eventType = 'on'+event_name;
 			//obj.fireEvent(evt.eventType, evt);
 		}
-	}
+	};
+
 	// Add a CSS class to a DOM element
 	util.addClass = function(node,nclass){
-		if(node==null) return;
+		if(node===null) return;
 		if(!util.hasClass(node,nclass)){
 			node.className = node.className+' '+nclass;
 		}
-	}
+	};
+
 	// Remove a CSS class from a dom element
 	util.removeClass = function(node, nclass){
-		if(node==null) return;
+		if(node===null) return;
 		node.className = node.className.replace(new RegExp('(^|\\s)'+nclass+'(\\s|$)'),'');
 		return;
-	}
+	};
+
 	// Find out if a DOM element has a CSS class
 	util.hasClass = function(node, nclass){
-		if(node==null) return;
-		return (node.className.match(new RegExp('(^|\\s)'+nclass+'(\\s|$)')) != null);
-	}
+		if(node===null) return;
+		return (node.className.match(new RegExp('(^|\\s)'+nclass+'(\\s|$)')) !== null);
+	};
+
 	// High speed occurrences function (amount of matches within a string)
 	// borrowed from stack overflow (benchmarked to be significantly faster than regexp)
 	// http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
@@ -1019,28 +1038,40 @@
 			if(pos>=0){ n++; pos+=step; } else break;
 		}
 		return(n);
-	}
+	};
 
 	// Add ourselves to the outside world / global namespace
 	window.quickspot = {};
+
 	// Provide method that will allow us to create an new object instance for each attached search box.
 	window.quickspot.attach = function(options){
-		var qs = new quickspot;
+		var qs = new quickspot();
 		qs.attach(options);
 		return qs;
-	}
-	//Allow creation of a quickspot datastore (without the search QS features)
+	};
+
+	// Allow creation of a quickspot datastore (without the search QS features)
 	window.quickspot.datastore = function(options){
+		// If url is provided
 		if(typeof options.url !== 'undefined'){
 			var obj = {};
 			util.ajaxGetJSON(options, function(data){
 				obj.store = datastore.create(data, options);
-				if(typeof options.loaded != 'undefined') options.loaded(obj.store);
+				if(typeof options.loaded != 'undefined'){
+					options.loaded(obj.store);
+				} 
 			});
 			return obj;
 		}
-		return {"store": datastore.create(data, options) };
-	}
+
+		// If a data source is provided directly
+		if(typeof options.data !== 'object'){
+			return {"store": datastore.create(options.data, options) };
+		}
+
+		// if nothing is provided
+		return false;
+	};
 	
 }).call({});
 
@@ -1049,14 +1080,15 @@
 // forEach shim for
 if (!('forEach' in Array.prototype)) {
 	Array.prototype.forEach= function(action, that /*opt*/) {
-		for (var i= 0, n= this.length; i<n; i++)
+		for (var i= 0, n = this.length; i<n; i++){
 			if (i in this){
 				action.call(that, this[i], i, this);
 			}
+		}
 	};
 }
 
-// JSON shim (import cdn copy of json2 if JSON is missing)
+// JSON shim (import CDN copy of json2 if JSON is missing)
 // Even if jQuery is available it seems json2 is significantly faster, so importing it is worth the time.
 if(typeof JSON === 'undefined'){
 	var json2 = document.createElement('script');
