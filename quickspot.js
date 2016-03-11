@@ -1,11 +1,11 @@
 /*!
- * Quickspot a fast flexible JSON powered in memory search.
+ * Quick-spot a fast flexible JSON powered in memory search.
  *
  * @author Carl Saggs
  * @repo https://github.com/thybag/quick-spot
  */
  (function(){
-	// Privatly scoped quick spot object (we talk to the real world (global scope) via the attach method)
+	// Privately scoped quick spot object (we talk to the real world (global scope) via the attach method)
 	var quickspot = function()
 	{
 		// Internal datastore
@@ -14,11 +14,12 @@
 		// Internal data
 		this.results = [];
 		this.selectedIndex = 0; // index of currently selected result
-		this.target = null; 	// input acting as searchbox
-		this.dom = null;		// ref to search results dom object
+		this.target = null; 	// input acting as search box
+		this.dom = null;		// ref to search results DOM object
+		this.container = null;  // ref to container DOM object
 		this.lastValue = '';	// last searched value
 
-		// here is kinda a global "this" for quickspot
+		// "here" is kinda a global "this" for quickspot
 		var here = this;
 
 		// Public version of attach.
@@ -32,8 +33,7 @@
 					methods.attach(options);
 				});
 			}
-
-		}
+		};
 
 		var methods = {};
 
@@ -41,7 +41,7 @@
 		 * Attach a new quick-spot search to the page
 		 *
 		 ** Required
-		 * @param options.target - ID of element to use
+		 * @param options.target - DOM node or ID of element to use (or callback that returns this)
 		 *
 		 ** One of
 		 * @param options.url - URL of JSON feed to search with
@@ -54,7 +54,7 @@
 		 * @param options.disable_occurrence_weighting - if true, occurrences will not weight results
 		 * @param options.safeload - QS will attempt to attach instantly, rather than waiting for document load
 		 * @param options.hide_on_blur - Hide listing on blur (true by default)
-		 * @param options.results_container - id of contain quick-spot results will show in (by default will use quick-spot elements parent)
+		 * @param options.results_container - DOM node or ID for container quick-spot results will be shown in (by default will use the quick-spot elements parent)
 		 * @param options.prevent_headers - Don't add custom headers such as X-Requested-With (will avoid options requests)
 		 * @param options.auto_highlight - Automatically attempt to highlight search text in result items. (true|false - default false)
 		 * @param options.max_results - Maximum results to display at any one time (after searching/ordering, results after the cut off won't be rendered. 0 = unlimited)
@@ -71,6 +71,8 @@
 		 * @param options.ready - callback fired when quick-spot up & running
 		 * @param options.data_pre_parse - callback provided with raw data object & options - can be used to rearrange data to work with quick-spot (if needed)
 		 * @param options.parse_results - Manipulate result array before render.
+		 * @param options.results_header - Callback that returns either a dom element or markup for the results box header
+		 * @param options.results_footer - Callback that returns either a dom element or markup for the results box footer
 		 *
 		 ** Events
 		 * quickspot:start - search is triggered
@@ -93,7 +95,7 @@
 			}
 
 			// Get target
-			here.target = document.getElementById(here.options.target);
+			here.target = methods.get_option_contents_as_node(here.options.target, false);
 			if(!here.target){
 				console.log("Error: Target ID could not be found");
 				return;
@@ -117,16 +119,44 @@
 				return;
 			}
 			
-			// Setup basic Dom stuff
+			// Setup basic DOM stuff for results
 			here.dom = document.createElement('div');
 			here.dom.className='quickspot-results';
-			here.dom.setAttribute("tabindex","100");
-			here.dom.style.display = 'none';
 			
+			// Get container
 			if(typeof here.options.results_container == 'undefined'){
-				here.target.parentNode.appendChild(here.dom);
+				// Create QS container and add it to the DOM
+				here.container = document.createElement('div');
+				here.target.parentNode.appendChild(here.container);
 			}else{
-				document.getElementById(here.options.results_container).appendChild(here.dom);
+				// use existing QS container
+				here.container = methods.get_option_contents_as_node(here.options.results_container, false);
+			}
+
+			// Set container attributes
+			here.container.setAttribute("tabindex","100");
+			here.container.style.display = 'none';
+			here.container.className = 'quickspot-results-container';
+
+			// Attach header element if one exists
+			if(typeof options.results_header !== 'undefined'){
+				var header = methods.get_option_contents_as_node(options.results_header, true);
+				if(header){
+					here.container.appendChild(header);
+				}
+			}
+
+			// Add the results object to the container
+			here.container.appendChild(here.dom);
+
+			// Attach footer element if one exists
+			if(typeof options.results_footer !== 'undefined'){
+				// Attempt to extract markup
+				var footer = methods.get_option_contents_as_node(options.results_footer, true);
+				if(footer){
+					here.container.appendChild(footer);
+				}
+				
 			}
 
 			// Attach listeners
@@ -134,9 +164,9 @@
 			util.addListener(here.target, 	'keyup', 	methods.handleKeyDown);
 			util.addListener(here.target, 	'focus', 	methods.handleFocus);
 			util.addListener(here.target, 	'blur', 	methods.handleBlur);
-			util.addListener(here.dom, 		'blur', 	methods.handleBlur);
+			util.addListener(here.container, 'blur', 	methods.handleBlur);
 			// Allows use of commands when only results are selected (if we are not linking off somewhere)
-			util.addListener(here.dom, 		'blur', 	methods.handleKeyUp);
+			util.addListener(here.container, 'blur', 	methods.handleKeyUp);
 
 			// Fire ready callback
 			if(typeof options.ready === 'function') options.ready(here);
@@ -145,7 +175,55 @@
 			if(typeof options.screenreader !== 'undefined' && options.screenreader === true){
 				methods.screenreaderHelper();
 			}
-		}
+		};
+
+		/**
+		 * get_option_contents_as_node
+		 *
+		 * Takes a value and attempts to figure out what DOM node it refers to. Value can an existing DOM node, ID, or string of HTML markup - or even a callback which returns previous types
+		 *
+		 * @param option - value to extract in to a DOM node
+		 * @param allow_raw_html - allow a string fo HTML to be turned in to a DOM node (if not set, the node must already exist)
+		 *
+		 * @return DOM Node | false
+		 */
+		methods.get_option_contents_as_node = function(option, allow_raw_html){
+			
+			var node;
+
+			// If option is a function, call as callback in order to get result
+			option = (typeof option === 'function') ? option(here) : option;
+
+			// Is this a valid node already?
+			if(typeof option === 'object' && option.nodeType && option.nodeType === 1){
+				return option;
+			}
+			// Is it a string?
+			if(typeof option === 'string'){
+
+				// If this has no spaces, it may be an ID?
+				if(option.indexOf(' ') === -1){
+					// Remove starting #, if it has one
+					node = (option.indexOf('#') === 1) ? document.getElementById(option.substring(1)) : document.getElementById(option);
+					// if we found somthing, return it
+					if(node !== null){
+						return node;
+					}
+				}
+
+				// Okay, doesn't look like that was an ID. 
+				// If allow_raw_html is allowed, lets just assume this was some markup in a string
+				// and create a node for it.
+				if(typeof allow_raw_html !== 'undefined' && allow_raw_html){
+					node = document.createElement("div");
+					node.innerHTML = option;
+					return node;
+				} 
+			}
+
+			// No luck? return false
+			return false;
+		};
 
 		/**
 		 * Start screenreaderHelper for use in supported browsers
@@ -183,7 +261,7 @@
 			util.addListener(here.target, 'quickspot:activate', function(){
 				reader.innerHTML = "Loading...";
 			});
-		}
+		};
 	
 		/**
 		 * Find and display results for a given search term
@@ -192,14 +270,14 @@
 		 */
 		methods.findResultsFor = function(search){
 
-			//dont search on blank
+			// Don't search on blank
 			if(search == ''){
 				if(typeof here.options.no_search_handler === 'function'){
 					here.options.no_search_handler(here.dom, here);
 				}
 				//show nothing if no value
 				here.results = [];
-				here.dom.style.display = 'none';
+				methods.hideResults();
 				return;
 			}
 
@@ -209,7 +287,7 @@
 			// Avoid searching if input hasn't changed.
 			// Just reshown what we have
 			if(here.lastValue == search){
-				here.dom.style.display = 'block';
+				methods.showResults();
 				util.triggerEvent(here.target, "quickspot:result");
 				return;
 			}
@@ -231,7 +309,7 @@
 			// Event for quickspot end
 			util.triggerEvent(here.target, "quickspot:end");
 			util.triggerEvent(here.target, "quickspot:result");
-		}
+		};
 
 		/**
 		 * On: Quick-spot focus
@@ -239,7 +317,7 @@
 		 */
 		methods.handleFocus = function(event){
 			methods.findResultsFor(here.target.value);
-		}
+		};
 
 		/**
 		 * On: Quick-spot search typed (keydown)
@@ -247,7 +325,7 @@
 		 */
 		methods.handleKeyDown = function(event){
 			methods.findResultsFor(here.target.value);
-		}
+		};
 
 		/**
 		 * On: Quick-spot search typed (keyup)
@@ -273,16 +351,16 @@
 
 			if(key==13||key==38||key==40){
 				if (event.preventDefault) { 
-				    event.preventDefault(); 
+					event.preventDefault(); 
 				} else {
-				    event.returnValue = false;
+					event.returnValue = false;
 				}
 			}
-		}
+		};
 
 		/**
 		 * On: Quick-spot click off (blur)
-		 * if it wasn't one of results that was selected, close results pane
+		 * If it wasn't one of results that was selected, close results pane
 		 */
 		methods.handleBlur = function(event){
 			// is hide on blur enabled
@@ -294,12 +372,13 @@
 			// Wait a few ms for the new target to be correctly set so we can decided if we really 
 			// want to close the search.
 			setTimeout(function(){
-				if(here.dom != document.activeElement && here.target != document.activeElement){
+				// So long as the new active element isn't the container, searchbox, or somthing in the quickspot container, close!
+				if(here.container != document.activeElement && here.target != document.activeElement && here.container.contains(document.activeElement) === false){
 					//close if target is neither results or searchbox
-					here.dom.style.display = 'none';
+					methods.hideResults();
 				}
 			},150);
-		}
+		};
 
 		/**
 		 * Select index
@@ -323,7 +402,7 @@
 
 			//Select new item
 			util.addClass(here.dom.children[here.selectedIndex], 'selected');
-		}
+		};
 
 		/**
 		 * Scroll results box to show currently selected item
@@ -332,7 +411,7 @@
 		 */
 		methods.scrollResults = function(direction){
 			// Get basic DOM data (assume results all have same height)
-			results_height = here.dom.clientHeight;
+			var results_height = here.dom.clientHeight;
 
 			// Get current node, plus its offset & height
 			var current_result = here.dom.childNodes[here.selectedIndex];
@@ -349,7 +428,7 @@
 			if(direction == 'up' && current_offset < here.dom.scrollTop){
 				here.dom.scrollTop = current_offset;
 			}
-		}
+		};
 
 		/**
 		 * Render search results to user
@@ -377,11 +456,11 @@
 					}
 				}else{
 					// show nothing
-					here.dom.style.display = "none";
+					methods.hideResults();
 				}
 				
 				// event for no results found
-				util.triggerEvent(here.target,"quickspot:noresults");
+				util.triggerEvent(here.target, "quickspot:noresults");
 				return;
 			}
 
@@ -407,7 +486,7 @@
 				}	
 
 				// Automatically highlight matching portion of text
-				if(typeof here.options.auto_highlight !== 'undefined' && here.options.auto_highlight == true){
+				if(typeof here.options.auto_highlight !== 'undefined' && here.options.auto_highlight === true){
 					// Attempt to avoid sticking strong's in the middle of html tags
 					// http://stackoverflow.com/questions/18621568/regex-replace-text-outside-html-tags#answer-18622606
 					result_str = result_str.replace(RegExp('('+here.lastValue+')(?![^<]*>|[^<>]*<\/)', 'i'), '<strong>$1</strong>');
@@ -437,18 +516,18 @@
 			});
 
 			//event when results found
-			util.triggerEvent(here.target,"quickspot:resultsfound");
+			util.triggerEvent(here.target, "quickspot:resultsfound");
 
 			// Clear old data from DOM.
 			here.dom.innerHTML ='';
 
 			// Attach fragment
-			here.dom.style.display = 'block';
+			methods.showResults();
 			here.dom.appendChild(fragment);
 
 			// Select the initial value.
 			methods.selectIndex(this.selectedIndex);
-		}
+		};
 
 		/**
 		 * handleSelection handles action from click (or enter key press)
@@ -472,16 +551,16 @@
 				here.options.click_handler(result, here);
 			}else{
 
-				if(typeof result.url !== 'undefined'){
-					//If url was provided, go there
-					window.location = url;
+				if(typeof result.url === 'string'){
+					// If URL was provided, go there
+					window.location.href = result.url;
 				}else{
-					//else assume we are just a typeahead?
+					// else assume we are just a typeahead?
 					here.target.value = result[here.options.display_name];
-					here.dom.style.display = 'none';
+					methods.hideResults();
 				}
 			}
-		}
+		};
 		
 		/**
 		 * handle no results
@@ -491,7 +570,7 @@
 		 */
 		methods.no_results =  function(self, search){
 			return "<a class='quickspot-result selected'>No results...</a>";
-		}
+		};
 
 		/**
 		 * Initialise data
@@ -502,7 +581,20 @@
 		methods.initialise_data = function(data){
 			here.datastore = datastore.create(data, here.options);
 			if(typeof here.options.loaded !== 'undefined') here.options.loaded(here.datastore);
-		}
+		};
+
+		/**
+		 * Hide QS results
+		 */
+		methods.hideResults = function(){
+			here.container.style.display = 'none';
+		};
+		/**
+		 * Show QS results
+		 */
+		methods.showResults = function(){
+			here.container.style.display = 'block';
+		};
 
 		// Default configurtion
 		this.options = {
@@ -510,7 +602,7 @@
 			"no_results": methods.no_results,
 			"no_results_click": function(val, sbox){}
 		};
-	}
+	};
 	
 	/**
 	 * Datastore component.
@@ -530,8 +622,7 @@
 		this.data_filtered = [];
 		this.results = [];
 
-
-		// Accessor to primary "this" for internal objs
+		// Accesser to primary "this" for internal objs
 		var here = this;
 		// private methods
 		var ds = {};
@@ -540,23 +631,25 @@
 		 * Create
 		 *
 		 * Create a new datastore instance. The datastore will use the data and options to generate
-		 * an internal preproccessed reprention of the data in order to allow quicker searching
+		 * an internal preproccessed representation of the data in order to allow quicker searching
 		 * and filtering
 		 *
-		 * @param data raw json
+		 * @param data raw JSON
 		 * @param options
 		 */
 		ds.create = function(data, options){
 
 			// Merge passed in options into options obj
-			for(var i in options) here.options[i] = options[i];
+			for(var i in options){
+				here.options[i] = options[i];
+			} 
 			
 			// If no key value, use name.
 			if(!here.options.key_value){
 				here.options.key_value = 'name';
 			}
 
-			// Pre parse data (re arrange structure to allow searching if needed)
+			// Pre-parse data (re arrange structure to allow searching if needed)
 			if(typeof options.data_pre_parse === 'function'){
 				data = options.data_pre_parse(data, options);
 			} 
@@ -565,7 +658,11 @@
 			// keys will be thrown away
 			if(typeof data === 'object'){
 				var tmp = [];
-				for(var i in data) if (data.hasOwnProperty(i)) tmp.push(data[i]);
+				for(i in data){
+					if (data.hasOwnProperty(i)){
+						tmp.push(data[i]);
+					} 
+				} 
 				data = tmp;
 			}
 
@@ -573,13 +670,13 @@
 
 			// Loop through searchable items, adding all values that will need to be searched upon in to a
 			// string stored as __searchvalues. Either add everything or just what the user specifies.
-			for(var i = 0; i < data.length; i++){
+			for(i = 0; i < data.length; i++){
 				// If search_on exists use th as attributes list, else just use all of them
 				data[i] = ds.pre_process(data[i], attrs);
 			}
 			// Store in memory
 			here.data_filtered = here.data = data;
-		} 
+		};
 
 		/**
 		 * find
@@ -593,7 +690,7 @@
 			search = here.options.string_filter(search.toLowerCase());
 			this.results = ds.find(search, this.data_filtered, col);
 			return this;
-		}
+		};
 
 		/**
 		 * sort results by $str
@@ -606,7 +703,7 @@
 			search = here.options.string_filter(search.toLowerCase());
 			this.results = ds.sort_by_match(this.results, search);
 			return this;
-		}
+		};
 
 		/**
 		 * search 
@@ -618,7 +715,7 @@
 		this.search = function(search){
 			this.find(search).sort_results_by(search);
 			return this;
-		}
+		};
 
 		/**
 		 * filter data
@@ -638,7 +735,7 @@
 			}
 			
 			return this;
-		}
+		};
 
 		/**
 		 * Clear all filters applied to data.
@@ -647,7 +744,7 @@
 		this.clear_filters = function(){
 			this.data_filtered = this.data;
 			return this;
-		}
+		};
 
 		/**
 		 * Add additional data to datastore
@@ -656,13 +753,15 @@
 		this.add = function(data){
 
 			// If array, run this method on each individual item
-			if(typeof data === 'array'){
-				for(var i = 0 ;i < data.length; i++) this.add(data[i]);
+			if(data instanceof Array){
+				for(var i = 0; i < data.length; i++){
+					this.add(data[i]);
+				} 
 
 				return this;
 			}
 
-			// Else proccess data and add it to the data array
+			// Else process data and add it to the data array
 			var attrs = (typeof here.options.search_on !== 'undefined') ? here.options.search_on : false; 
 			
 			// Add data
@@ -672,7 +771,7 @@
 			this.data_filtered = this.data;
 
 			return this;
-		}
+		};
 
 		/**
 		 * get
@@ -681,7 +780,7 @@
 		 */
 		this.get = function(){
 			return this.results;
-		}
+		};
 
 		/**
 		 * pre_process an item to make it quickly searchable
@@ -690,16 +789,16 @@
 		 * @param attrs attributes to search on
 		 */
 		ds.pre_process = function(item, attrs){
-			var tmp = '';
+			var c, tmp = '';
 
 			if(attrs){
 				// grab only the attributes we want to search on
-				for(var c = 0; c < attrs.length; c++){
+				for(c = 0; c < attrs.length; c++){
 					tmp += ' ' + item[attrs[c]];
 				}
 			}else{
-				// just grab all the attribuites 
-				for(var c in item){
+				// just grab all the attributes 
+				for(c in item){
 					tmp += ' ' + item[c];
 				}
 			}
@@ -708,18 +807,18 @@
 			item.__keyvalue = here.options.string_filter(item[here.options.key_value].toLowerCase());
 
 			return item;
-		}
+		};
 
 		/**
 		 * find
 		 *
-		 * Looks through the json provided and returns any
+		 * Looks through the JSON provided and returns any
 		 * matching results as an array
 		 *
 		 * @param search string specifying what to search for
 		 * @param dataset to search on
 		 * @param column to use in search
-		 * @return array of ojects that match string
+		 * @return array of objects that match string
 		 */
 		ds.find = function(search, dataset, use_column){
 			var i = 0, itm, matches = [];
@@ -738,7 +837,8 @@
 			}
 			//return matching items
 			return matches;
-		}
+		};
+
 		/**
 		 * findBy func
 		 *
@@ -754,11 +854,11 @@
 			for(i=0; i < dataset.length; i++){
 				itm = dataset[i];
 				if(func(itm)){
-					matches.push(itm)
+					matches.push(itm);
 				} 
 			}
 			return matches;
-		}
+		};
 
 		/**
 		 * sort Results
@@ -773,11 +873,10 @@
 		ds.sort_by_match = function(results, search){
 			// Select either user defined score_handler, or default (built in) one
 			var score_handler = (typeof here.options.gen_score === 'undefined') ? ds.calculate_match_score : here.options.gen_score;
-			// Score each value (heigher==better match) for results sort
+			// Score each value (higher = better match) for results sort
 			for(var i=0;i<results.length;i++){
 				results[i].__score = score_handler(results[i], search);
-
-				results[i].__len_diff = Math.abs(search.length-results[i].__keyvalue.length);
+				results[i].__len_diff = Math.abs(search.length - results[i].__keyvalue.length);
 			}
 				
 			// Sort results based on score (higher=better)
@@ -795,7 +894,7 @@
 
 			// return them for rendering
 			return results;
-		}
+		};
 
 		/**
 		 * Calculate score
@@ -826,7 +925,7 @@
 			score += (idx === 0 && result.__keyvalue.length === search.length) ? 10 : 0;
 
 			return score;
-		}
+		};
 
 		ds.simplfy_strings = function(str){
 
@@ -837,21 +936,22 @@
 			str = str.replace(/\&/g, "and");
 
 			return str;
-		}
+		};
 
 		// Specify preset options later so methods all exist
 		this.options = {
 			"string_filter": ds.simplfy_strings,
 			"disable_occurrence_weighting": false
-		}
+		};
 
 		// Setup data store
 		ds.create(data, options);
-	}
+	};
+
 	// Static method, create a new data store.
 	datastore.create = function(data, options){
 		return new datastore(data, options);
-	}
+	};
 
 	/**
  	 * Util methods.
@@ -859,60 +959,66 @@
  	 * I am using these to avoid the need to have dependencies on any external frameworks (example:jQuery).
  	 */
 	var util = {};
+
 	// Perform an AJAX get of a provided url, and return the result to the specified callback.
 	util.ajaxGetJSON = function(options, callback){
-		try {var xmlhttp = window.XMLHttpRequest?new XMLHttpRequest(): new ActiveXObject("Microsoft.XMLHTTP");}  catch (e) { }
+		var xmlhttp = null;
+
+		try { xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP"); }  catch (e) { }
+
 		xmlhttp.onreadystatechange = function(){
 			if ((xmlhttp.readyState == 4) && (xmlhttp.status == 200)) {
-				//turn JSON in to real JS object & send it to the callback
+				// turn JSON in to real JS object & send it to the callback
 				callback(JSON.parse(xmlhttp.responseText));
 			}
-		}
+		};
+
 		xmlhttp.open("GET", options.url, true);
 
 		//Add standard AJAX header (unless prevent headers is set and is true)
-		if(typeof options.prevent_headers === 'undefined' || options.prevent_headers == false){
+		if(typeof options.prevent_headers === 'undefined' || options.prevent_headers === false){
 			xmlhttp.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 		}
 		
 		xmlhttp.send(null);
-	}
+	};
+
 	// AddListener (cross browser method to add an eventListener)
 	util.addListener = function(obj, event, callback){
 		// Proper way vs IE way
 		if(window.addEventListener){obj.addEventListener(event, callback, false);}else{obj.attachEvent('on'+event, callback);}
-	}
+	};
+
 	// Fire an Event
 	util.triggerEvent = function(obj, event_name){
 		if (document.createEvent) {
 			var evt = document.createEvent("HTMLEvents");
 			evt.initEvent(event_name, true, true);
 			obj.dispatchEvent(evt);
-		}else{
-			//IE 8/7 cannot fire custom events so this code is no help :(
-			//var evt = document.createEventObject();
-			//evt.eventType = 'on'+event_name;
-			//obj.fireEvent(evt.eventType, evt);
 		}
-	}
+	};
+
 	// Add a CSS class to a DOM element
-	util.addClass = function(node,nclass){
-		if(node==null) return;
-		if(!util.hasClass(node,nclass)){
+	util.addClass = function(node, nclass){
+		if(typeof node === 'undefined' || node === null) return;
+		if(!util.hasClass(node, nclass)){
 			node.className = node.className+' '+nclass;
 		}
-	}
-	// Remove a CSS class from a dom element
+	};
+
+	// Remove a CSS class from a DOM element
 	util.removeClass = function(node, nclass){
-		if(node==null) return;
+		if(typeof node === 'undefined' || node === null) return;
 		node.className = node.className.replace(new RegExp('(^|\\s)'+nclass+'(\\s|$)'),'');
 		return;
-	}
+	};
+
 	// Find out if a DOM element has a CSS class
 	util.hasClass = function(node, nclass){
-		if(node==null) return;
-		return (node.className.match(new RegExp('(^|\\s)'+nclass+'(\\s|$)')) != null);
-	}
+		if(typeof node === 'undefined' || node === null) return;
+		return (node.className.match(new RegExp('(^|\\s)'+nclass+'(\\s|$)')) !== null);
+	};
+
 	// High speed occurrences function (amount of matches within a string)
 	// borrowed from stack overflow (benchmarked to be significantly faster than regexp)
 	// http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
@@ -928,29 +1034,54 @@
 			if(pos>=0){ n++; pos+=step; } else break;
 		}
 		return(n);
-	}
+	};
 
-	// Add ourselves to the outside world / global namespace
-	window.quickspot = {};
+	// Define public object methods.
+	var QuickspotPublic = {};
+
 	// Provide method that will allow us to create an new object instance for each attached search box.
-	window.quickspot.attach = function(options){
-		var qs = new quickspot;
+	QuickspotPublic.attach = function(options){
+		var qs = new quickspot();
 		qs.attach(options);
 		return qs;
-	}
-	//Allow creation of a quickspot datastore (without the search QS features)
-	window.quickspot.datastore = function(options){
+	};
+
+	// Allow creation of a quickspot datastore (without the search QS features)
+	QuickspotPublic.datastore = function(options){
+		// If url is provided
 		if(typeof options.url !== 'undefined'){
 			var obj = {};
 			util.ajaxGetJSON(options, function(data){
 				obj.store = datastore.create(data, options);
-				if(typeof options.loaded != 'undefined') options.loaded(obj.store);
+				if(typeof options.loaded != 'undefined'){
+					options.loaded(obj.store);
+				} 
 			});
 			return obj;
 		}
-		return {"store": datastore.create(data, options) };
+
+		// If a data source is provided directly
+		if(typeof options.data !== 'object'){
+			return {"store": datastore.create(options.data, options) };
+		}
+
+		// if nothing is provided
+		return false;
+	};
+
+	// Add ourselves to the outside world / global name-space
+	if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+		module.exports = QuickspotPublic;
+	} else {
+		if (typeof define === 'function' && define.amd) {
+			define([], function() {
+				return QuickspotPublic;
+			});
+		} else {
+			window.quickspot = QuickspotPublic;
+		}
 	}
-	
+
 }).call({});
 
 // Compatibility layer
@@ -958,14 +1089,15 @@
 // forEach shim for
 if (!('forEach' in Array.prototype)) {
 	Array.prototype.forEach= function(action, that /*opt*/) {
-		for (var i= 0, n= this.length; i<n; i++)
+		for (var i= 0, n = this.length; i<n; i++){
 			if (i in this){
 				action.call(that, this[i], i, this);
 			}
+		}
 	};
 }
 
-// JSON shim (import cdn copy of json2 if JSON is missing)
+// JSON shim (import CDN copy of json2 if JSON is missing)
 // Even if jQuery is available it seems json2 is significantly faster, so importing it is worth the time.
 if(typeof JSON === 'undefined'){
 	var json2 = document.createElement('script');
@@ -974,6 +1106,6 @@ if(typeof JSON === 'undefined'){
 }
 
 // Suppress console for IE.
-if(typeof console === 'undefined'){
+if(typeof window.console === 'undefined'){
 	window.console = {"log":function(x){}};
 }

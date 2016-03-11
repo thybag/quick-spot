@@ -109,22 +109,23 @@
 
 			];
 
-			//Setup the standard quickspot-search
+			// Setup the standard quickspot-search
 			quickspot.attach({"url":"demo.json", "target":"searchbox"});
 
-			//setup a slighly altered one
+			// Setup a slightly altered one
 			quickspot.attach({
 				"data":test_data, 
 				"target":"searchbox2",
-				"displayhandler": function(co){
-					return '<strong>'+co.name+'</strong> - '+co.award
-					+'<br><small>'+co.ucas+' / '+co.subject+'</small>';
+				"display_handler": function(co){
+					return '<strong>'+co.name+'</strong> - '+co.award+'<br><small>'+co.ucas+' / '+co.subject+'</small>';
 				},
-				"clickhandler": function(co){
-					// You would probably want to do somthing more useful here
+				"click_handler": function(co){
+					// You would probably want to do something more useful here
 					alert(co.name);
+				},
+				"no_results_click": function(){
+					alert("No results found");
 				}
-
 			});
 		</script>
 	</head>
