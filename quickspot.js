@@ -1036,18 +1036,18 @@
 		return(n);
 	};
 
-	// Add ourselves to the outside world / global namespace
-	window.quickspot = {};
+	// Define public object methods.
+	var QuickspotPublic = {};
 
 	// Provide method that will allow us to create an new object instance for each attached search box.
-	window.quickspot.attach = function(options){
+	QuickspotPublic.attach = function(options){
 		var qs = new quickspot();
 		qs.attach(options);
 		return qs;
 	};
 
 	// Allow creation of a quickspot datastore (without the search QS features)
-	window.quickspot.datastore = function(options){
+	QuickspotPublic.datastore = function(options){
 		// If url is provided
 		if(typeof options.url !== 'undefined'){
 			var obj = {};
@@ -1068,6 +1068,19 @@
 		// if nothing is provided
 		return false;
 	};
+
+	// Add ourselves to the outside world / global name-space
+	if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+		module.exports = QuickspotPublic;
+	} else {
+		if (typeof define === 'function' && define.amd) {
+			define([], function() {
+				return QuickspotPublic;
+			});
+		} else {
+			window.quickspot = QuickspotPublic;
+		}
+	}
 
 }).call({});
 
@@ -1093,6 +1106,6 @@ if(typeof JSON === 'undefined'){
 }
 
 // Suppress console for IE.
-if(typeof console === 'undefined'){
+if(typeof window.console === 'undefined'){
 	window.console = {"log":function(x){}};
 }
