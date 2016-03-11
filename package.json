@@ -1,0 +1,23 @@
+{
+  "name": "quick-spot",
+  "version": "0.7.3",
+  "description": "Quickspot is a fast, flexible JSON powered in-memory search.",
+  "main": "quickspot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thybag/quick-spot.git"
+  },
+  "keywords": [
+    "search",
+    "quicksearch"
+  ],
+  "author": "Carl Saggs <bag@thybag.co.uk>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thybag/quick-spot/issues"
+  },
+  "homepage": "https://github.com/thybag/quick-spot#readme"
+}
