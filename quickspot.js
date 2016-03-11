@@ -1061,7 +1061,7 @@
 		}
 
 		// If a data source is provided directly
-		if(typeof options.data !== 'object'){
+		if(typeof options.data !== 'undefined'){
 			return {"store": datastore.create(options.data, options) };
 		}
 

@@ -10,7 +10,10 @@ This Quickspot is free to use and licensed under the MIT license.
 2. Include `quickspot.js` in to your web page.
 3. call `quickspot.attach({"url":"<path_to_JSON>", "target":"<id_of_searchbox>"});`
 
-Alternately to install using [Bower](http://bower.io/) run `bower install quick-spot`
+Alternately;
+
+* to install using [NPM](https://www.npmjs.com/) run `npm install quick-spot`
+* to install using [Bower](http://bower.io/) run `bower install quick-spot`
 
 Quickspot is tested to have full support for Chrome, Firefox, Safari and IE9+.    
 IE7 and IE8 also work although the custom events are unsupported.
