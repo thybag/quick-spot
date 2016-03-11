@@ -1,6 +1,6 @@
 {
   "name": "quick-spot",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "Quickspot is a fast, flexible JSON powered in-memory search.",
   "main": "quickspot.js",
   "scripts": {
