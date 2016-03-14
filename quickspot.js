@@ -281,9 +281,6 @@
 				return;
 			}
 
-			// Lower case search input
-			search = search.toLowerCase();
-
 			// Avoid searching if input hasn't changed.
 			// Just reshown what we have
 			if(here.lastValue == search){
@@ -687,7 +684,7 @@
 		 * @return this
 		 */
 		this.find = function(search, col){
-			search = here.options.string_filter(search.toLowerCase());
+			search = here.options.string_filter(search);
 			this.results = ds.find(search, this.data_filtered, col);
 			return this;
 		};
@@ -700,7 +697,7 @@
 		 * @return this
 		 */
 		this.sort_results_by = function(search){
-			search = here.options.string_filter(search.toLowerCase());
+			search = here.options.string_filter(search);
 			this.results = ds.sort_by_match(this.results, search);
 			return this;
 		};
@@ -730,7 +727,7 @@
 			if(typeof filter === 'function'){
 				this.results = this.data_filtered = ds.findByFunction(filter, this.data_filtered);
 			} else{
-				filter = here.options.string_filter(filter.toLowerCase());
+				filter = here.options.string_filter(filter);
 				this.results = this.data_filtered = ds.find(filter, this.data_filtered, on_col);	
 			}
 			
@@ -791,6 +788,11 @@
 		ds.pre_process = function(item, attrs){
 			var c, tmp = '';
 
+			// If item has already been proccessed, don't process it again.
+			if(typeof item.__searchvalues === 'string' && typeof item.__keyvalue === 'string'){
+				return item;
+			} 
+
 			if(attrs){
 				// grab only the attributes we want to search on
 				for(c = 0; c < attrs.length; c++){
@@ -803,8 +805,8 @@
 				}
 			}
 			// lower case everything
-			item.__searchvalues = here.options.string_filter(tmp.toLowerCase());
-			item.__keyvalue = here.options.string_filter(item[here.options.key_value].toLowerCase());
+			item.__searchvalues = here.options.string_filter(tmp);
+			item.__keyvalue = here.options.string_filter(item[here.options.key_value]);
 
 			return item;
 		};
@@ -928,6 +930,8 @@
 		};
 
 		ds.simplfy_strings = function(str){
+			// lower case
+			str = str.toLowerCase();
 
 			// remove ' " ( ) , . ?
 			str = str.replace(/(\"|\'|\,|\.|\)|\(|\-)/g, "");

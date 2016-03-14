@@ -55,6 +55,7 @@ In addition you can also extend quickspots base functionality significantly thro
 * `options.no_results_click(search_text, quickspot_instance)` - Callback to handle what happens when a user attempts to click/hit enter when no results have been found.
 * `options.data_pre_parse(raw_data_set, quickspot_options)` - Callback allows preprocessing of data before its set in to quickspot's data store. Can be used to rearrange data to work with quick-spot if needed.
 * `options.parse_results(search_results, quickspot_options)` - Manipulate the result array before render.
+* `options.string_filter(string)` - parse string for quickspot searching (Default will make string lower case, and remove punctuation characters)
 * `options.no_search_handler(searchbox_dom_element, quickspot_instance)` - Callback is run whenever the search box becomes empty
 * `options.loaded(datastore)` - Callback is fired when a data store has been loaded
 * `options.ready(quickspot_instance)` - Callback fired when quick-spot is fully up & running
@@ -74,3 +75,4 @@ Along with the standard events, quickspot will also fire the following additiona
 A few additional options can be accessed via setting certain attributes on the search data object. These can either be set within callbacks, or as part of the initial data set.
 
 * `qs_result_class` - When set, the class name stored in the attribute will be used as a class on the rendered result's anchor element.
+* `__searchvalues` and `__keyvalue` - By setting both these values, quickspot will assume all data has already been "processed" in to valid quickspot search objects. If only one is set, quickspot will overwrite these values via its normal pre-processing mechanism. Please ensure the `string_filter` returns the same formatting.
