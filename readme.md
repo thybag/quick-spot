@@ -57,6 +57,8 @@ In addition you can also extend quickspots base functionality significantly thro
 * `options.parse_results(search_results, quickspot_options)` - Manipulate the result array before render.
 * `options.string_filter(string)` - parse string for quickspot searching (Default will make string lower case, and remove punctuation characters)
 * `options.no_search_handler(searchbox_dom_element, quickspot_instance)` - Callback is run whenever the search box becomes empty
+* `options.hide_results(results_container, quickspot_instance)` - Callback to override method that hides results container
+* `options.show_results(results_container, quickspot_instance)` - Callback to override method that shows results container
 * `options.loaded(datastore)` - Callback is fired when a data store has been loaded
 * `options.ready(quickspot_instance)` - Callback fired when quick-spot is fully up & running
 * `options.results_header` - Header for results container (can be Node/ID/raw html or callback returning one of the previous)
@@ -66,7 +68,9 @@ Along with the standard events, quickspot will also fire the following additiona
 
 * `quickspot:start` - Fired each time a quickspot search is triggered.
 * `quickspot:end` - Fired each time a quickspot search completes.
-* `quickspot:activate` - Fired whenever quickspot gets focus.
+* `quickspot:showresults` - whenever result container is displayed
+* `quickspot:hideresults` - whenever results container is hidden
+* `quickspot:activate` - Fired whenever a quickspot item is invoked
 * `quickspot:select` - Fired whenever a result in quickspot is selected
 * `quickspot:result` - Fired whenever a quickspot displays some results
 * `quickspot:noresults` - Fired whenever a quickspot search finds no results.

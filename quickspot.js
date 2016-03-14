@@ -67,16 +67,22 @@
 		 * @param options.no_results - Item to show when no results are found (false to do nothing)
 		 * @param options.no_results_click - action when "no results" item is clicked
 		 * @param options.no_search_handler - action when no search is entered
+		 * @param options.string_filter - parse string for quickspot searching (Default will make string lower case, and remove punctuation characters)
 		 * @param options.loaded - callback fired when data store has been loaded
 		 * @param options.ready - callback fired when quick-spot up & running
 		 * @param options.data_pre_parse - callback provided with raw data object & options - can be used to rearrange data to work with quick-spot (if needed)
 		 * @param options.parse_results - Manipulate result array before render.
+		 * @param options.hide_results - override method to hide results container
+		  *@param options.show_results - override method to show results container
+		 * @param options.display_handler - overwrites default display method.
 		 * @param options.results_header - Callback that returns either a dom element or markup for the results box header
 		 * @param options.results_footer - Callback that returns either a dom element or markup for the results box footer
 		 *
 		 ** Events
 		 * quickspot:start - search is triggered
 		 * quickspot:end - search is completed
+		 * quickspot:showresults - whenever result container is displayed
+		 * quickspot:hideresults - whenever results container is hidden
 		 * quickspot:activate - quick-spot gets focus
 		 * quickspot:select - new result gets focus
 		 * quickspot:result - result is shown
@@ -544,7 +550,7 @@
 			util.triggerEvent(here.target,"quickspot:activate");
 			
 			// If custom handler was provided
-			if(typeof here.options.click_handler != 'undefined'){
+			if(typeof here.options.click_handler !== 'undefined'){
 				here.options.click_handler(result, here);
 			}else{
 
@@ -584,13 +590,26 @@
 		 * Hide QS results
 		 */
 		methods.hideResults = function(){
-			here.container.style.display = 'none';
+			util.triggerEvent(here.target, "quickspot:hideresults");
+
+			if(typeof here.options.hide_results === 'function'){
+				here.options.hide_results(here.container, here);
+			}else{
+				here.container.style.display = 'none';
+			}
+			
 		};
 		/**
 		 * Show QS results
 		 */
 		methods.showResults = function(){
-			here.container.style.display = 'block';
+			util.triggerEvent(here.target, "quickspot:showresults");
+
+			if(typeof here.options.show_results === 'function'){
+				here.options.show_results(here.container, here);
+			}else{
+				here.container.style.display = 'block';
+			}
 		};
 
 		// Default configurtion
