@@ -44,6 +44,7 @@ QuickSpot implements a number of advanced methods which can be used to further c
 * `options.prevent_headers` - Don't add custom headers such as X-Requested-With (Can be used to avoid an options requests being made to the data API)
 * `options.auto_highlight` - Automatically attempt to highlight search text in result items. (true|false - default false)
 * `options.max_results` - Maximum results to display at any one time (applied after searching/ordering, results after the cut off will not be rendered. 0 = show unlimited results)
+* `options.css_class_prefix` - Set custom class name prefix for quickspot. By default "quickspot" will be used.
 * `options.screenreader` - Experimental screen reader helper (true|false)
 
 In addition you can also extend quickspots base functionality significantly through the use of the following callbacks.

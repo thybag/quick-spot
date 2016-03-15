@@ -21,6 +21,7 @@
 
 		// "here" is kinda a global "this" for quickspot
 		var here = this;
+		var methods = {};
 
 		// Public version of attach.
 		this.attach = function(options){
@@ -35,7 +36,20 @@
 			}
 		};
 
-		var methods = {};
+		// Public method to change "datastore" powering quickspot
+		this.setDatastore = function(store){
+
+			// if this isn't the inital boot, hide search results
+			if(this.datastore !== null){
+				methods.hideResults();	
+			}
+
+			// Set store
+			this.datastore = store;
+
+			// Blank last value, to force re-query
+			this.lastValue = '';
+		};
 
 		/**
 		 * Attach a new quick-spot search to the page
@@ -59,6 +73,7 @@
 		 * @param options.auto_highlight - Automatically attempt to highlight search text in result items. (true|false - default false)
 		 * @param options.max_results - Maximum results to display at any one time (after searching/ordering, results after the cut off won't be rendered. 0 = unlimited)
 		 * @param options.screenreader - Experimental screen reader helper (true|false)
+		 * @param option.css_class_prefix - Defaults to "quickspot". Can be used to namespace quickspot classes
 		 * 
 		 ** Extend methods
 		 * @param options.display_handler - overwrites default display method.
@@ -127,7 +142,7 @@
 			
 			// Setup basic DOM stuff for results
 			here.dom = document.createElement('div');
-			here.dom.className='quickspot-results';
+			here.dom.className = here.options.css_class_prefix + '-results';
 			
 			// Get container
 			if(typeof here.options.results_container == 'undefined'){
@@ -142,7 +157,7 @@
 			// Set container attributes
 			here.container.setAttribute("tabindex","100");
 			here.container.style.display = 'none';
-			here.container.className = 'quickspot-results-container';
+			here.container.className = here.options.css_class_prefix + '-results-container';
 
 			// Attach header element if one exists
 			if(typeof options.results_header !== 'undefined'){
@@ -434,6 +449,36 @@
 		};
 
 		/**
+		 * Attempt to render empty search results (no results found)
+		 *
+		 * @param results array
+		 */
+		methods.render_empty_results = function(){
+
+			// no results found
+			util.triggerEvent(here.target, "quickspot:noresults");
+
+			// See if we have a message to show?
+			var msg = here.options.no_results(here, here.lastValue);
+
+			// no "no_results" message was set
+			if(msg === false){ 
+				return methods.hideResults();
+			}
+
+			// Set message
+			here.dom.innerHTML = msg; 
+
+			// If there is a child, connect it to the handle selector
+			if(typeof here.dom.childNodes[0] !== 'undefined'){
+				util.addListener(here.dom.childNodes[0], 'click', function(event){ methods.handleSelection(); });
+			}
+
+			// if we have a msg, make sure we show it
+			return methods.showResults();
+		};
+
+		/**
 		 * Render search results to user
 		 *
 		 * @param results array
@@ -447,31 +492,12 @@
 
 			// If no results, don't show result box.
 			if(results.length === 0){
-
-				// Get no results message.
-				// method will return false if no message should be displayed.
-				var msg = here.options.no_results(here, here.lastValue);
-				if(msg !== false){ 
-					here.dom.innerHTML = msg; 
-					// if there is a child, connect it to the handle selector
-					if(typeof here.dom.childNodes[0] !== 'undefined'){
-						util.addListener(here.dom.childNodes[0], 'click', function(event){ methods.handleSelection(); });
-					}
-				}else{
-					// show nothing
-					methods.hideResults();
-				}
-				
-				// event for no results found
-				util.triggerEvent(here.target, "quickspot:noresults");
-				return;
+				return methods.render_empty_results();
 			}
 
 			// If we have results, append required items in to a documentFragment (to avoid unnecessary DOM reflows that will slow this down)
 			var fragment = document.createDocumentFragment();
-			var tmp; // reuse object, JS likes this
-			var result_str;
-			var classes;
+			var tmp, result_str, classes; // reuse object, JS likes this
 
 			// if max_results is provided, slice off unwanted results (0 = show all, don't bother slicing if array is smaller than maxResults)
 			if(typeof here.options.max_results === 'number' && here.options.max_results !== 0 && results.length > here.options.max_results){
@@ -500,7 +526,7 @@
 				tmp.innerHTML = result_str;
 
 				// Apply classes
-				classes = 'quickspot-result quickspot-result-'+idx;
+				classes = here.options.css_class_prefix + '-result ' + here.options.css_class_prefix + '-result-' + idx;
 				if(typeof result.qs_result_class === 'string'){
 					classes = result.qs_result_class + ' ' + classes;
 				}
@@ -525,8 +551,8 @@
 			here.dom.innerHTML ='';
 
 			// Attach fragment
-			methods.showResults();
 			here.dom.appendChild(fragment);
+			methods.showResults();
 
 			// Select the initial value.
 			methods.selectIndex(this.selectedIndex);
@@ -572,7 +598,7 @@
 		 * @param search - search term
 		 */
 		methods.no_results =  function(self, search){
-			return "<a class='quickspot-result selected'>No results...</a>";
+			return "<a class='" + here.options.css_class_prefix + "-result selected'>No results...</a>";
 		};
 
 		/**
@@ -582,7 +608,8 @@
 		 * @param data raw json
 		 */
 		methods.initialise_data = function(data){
-			here.datastore = datastore.create(data, here.options);
+			// Set datastore
+			here.setDatastore( datastore.create(data, here.options) );
 			if(typeof here.options.loaded !== 'undefined') here.options.loaded(here.datastore);
 		};
 
@@ -615,6 +642,7 @@
 		// Default configurtion
 		this.options = {
 			"key_value": "name",
+			"css_class_prefix": "quickspot",
 			"no_results": methods.no_results,
 			"no_results_click": function(val, sbox){}
 		};
