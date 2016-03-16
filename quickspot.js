@@ -335,7 +335,7 @@
 		 * Display search results (assuming there are any)
 		 */
 		methods.handleFocus = function(event){
-			methods.findResultsfor(here.target.value);
+			methods.findResultsFor(here.target.value);
 		};
 
 		/**
@@ -343,7 +343,7 @@
 		 * Perform search
 		 */
 		methods.handleKeyDown = function(event){
-			methods.findResultsfor(here.target.value);
+			methods.findResultsFor(here.target.value);
 		};
 
 		/**
