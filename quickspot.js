@@ -51,6 +51,22 @@
 			this.lastValue = '';
 		};
 
+		// Force quickspot to show "all" results
+		this.showAll = function(unfiltered, custom_sort){
+			// default options
+			this.target.focus();
+			this.target.value = '';
+
+			// get sorting function
+			var sort_method = (typeof custom_sort === 'function') ? custom_sort : function(a, b){ return (a.__keyvalue > b.__keyvalue) ? 1 : -1; };
+
+			// Grab data set
+			here.results = here.datastore.all(unfiltered).sort_results_by(sort_method).get();
+
+			// & render it all
+			methods.render_results(here.results);
+		}
+
 		/**
 		 * Attach a new quick-spot search to the page
 		 *
@@ -342,6 +358,12 @@
 		 * Perform search
 		 */
 		methods.handleKeyDown = function(event){
+			// Do nothing if its a control key
+			var key = event.keyCode;
+			if(key===13||key===38||key===40){
+				return util.preventDefault(event);
+			}
+
 			methods.findResultsFor(here.target.value);
 		};
 
@@ -350,29 +372,26 @@
 		 * Handle specal actions (enter/up/down keys)
 		 */
 		methods.handleKeyUp = function(event){
+
 			var key = event.keyCode;
-			//prevent default action
 			
-			if(key==13){ //enter
+			if(key === 13){ //enter
 				methods.handleSelection(here.results[here.selectedIndex]);
 			}
-			if(key == 38){ //up
-				methods.selectIndex(here.selectedIndex-1);
+			if(key === 38 && here.results.length !== 0){ //up
+				methods.selectIndex(here.selectedIndex - 1);
 				methods.scrollResults('up');
 				util.triggerEvent(here.target, "quickspot:select");
 			}
-			if(key == 40){ // down
-				methods.selectIndex(here.selectedIndex+1);
+			if(key === 40 && here.results.length !== 0){ // down
+				methods.selectIndex(here.selectedIndex + 1);
 				methods.scrollResults('down');
 				util.triggerEvent(here.target, "quickspot:select");
-			} 	
+			}
 
-			if(key==13||key==38||key==40){
-				if (event.preventDefault) { 
-					event.preventDefault(); 
-				} else {
-					event.returnValue = false;
-				}
+			// prevent default action
+			if(key === 13 || key === 38 || key === 40){
+				util.preventDefault(event);
 			}
 		};
 
@@ -405,13 +424,12 @@
 		 * @param idx index of item to select
 		 */
 		methods.selectIndex = function(idx){
-
-			//deselect previously active item.
+			// Deselect previously active item.
 			util.removeClass(here.dom.children[here.selectedIndex], 'selected');
 
-			//Ensure ranges are valid for new item (fix them if not)
+			// Ensure ranges are valid for new item (fix them if not)
 			if(idx >= here.results.length){
-				here.selectedIndex = here.results.length-1;
+				here.selectedIndex = here.results.length - 1;
 			}else if(idx < 0){
 				here.selectedIndex = 0;
 			}else{
@@ -740,12 +758,19 @@
 		 * sort results by $str
 		 * sort results by closeness to provided string
 		 *
-		 * @param search string
+		 * @param search string | sort function
 		 * @return this
 		 */
 		this.sort_results_by = function(search){
-			search = here.options.string_filter(search);
-			this.results = ds.sort_by_match(this.results, search);
+
+			if(typeof search === "function"){
+				// sort by a custom function?
+				this.results.sort(search);
+			}else{
+				// sort by closest match
+				search = here.options.string_filter(search);
+				this.results = ds.sort_by_match(this.results, search);
+			}
 			return this;
 		};
 
@@ -760,6 +785,18 @@
 			this.find(search).sort_results_by(search);
 			return this;
 		};
+
+		/**
+		 * all
+		 * get all items in the collection
+		 *
+		 * @param unfiltered - get all (Without filters)
+		 * @return this
+		 */
+		this.all = function(unfiltered){
+			this.results = (unfiltered) ? this.data : this.data_filtered;
+			return this;
+		}
 
 		/**
 		 * filter data
@@ -1040,7 +1077,11 @@
 	// AddListener (cross browser method to add an eventListener)
 	util.addListener = function(obj, event, callback){
 		// Proper way vs IE way
-		if(window.addEventListener){obj.addEventListener(event, callback, false);}else{obj.attachEvent('on'+event, callback);}
+		if(window.addEventListener){
+			obj.addEventListener(event, callback, false);
+		}else{
+			obj.attachEvent('on'+event, callback);
+		}
 	};
 
 	// Fire an Event
@@ -1056,22 +1097,32 @@
 	util.addClass = function(node, nclass){
 		if(typeof node === 'undefined' || node === null) return;
 		if(!util.hasClass(node, nclass)){
-			node.className = node.className+' '+nclass;
+			node.className = (node.className + ' ' + nclass).trim();
 		}
 	};
 
 	// Remove a CSS class from a DOM element
 	util.removeClass = function(node, nclass){
 		if(typeof node === 'undefined' || node === null) return;
-		node.className = node.className.replace(new RegExp('(^|\\s)'+nclass+'(\\s|$)'),'');
+		node.className = node.className.replace(new RegExp('(^|\\s)' + nclass + '(\\s|$)'),'').trim();
 		return;
 	};
 
 	// Find out if a DOM element has a CSS class
 	util.hasClass = function(node, nclass){
 		if(typeof node === 'undefined' || node === null) return;
-		return (node.className.match(new RegExp('(^|\\s)'+nclass+'(\\s|$)')) !== null);
+		return (node.className.match(new RegExp('(^|\\s)' + nclass + '(\\s|$)')) !== null);
 	};
+
+	// prevent default
+	util.preventDefault = function(event){
+		if (event.preventDefault) { 
+			event.preventDefault(); 
+		} else {
+			event.returnValue = false;
+		}
+	};
+	
 
 	// High speed occurrences function (amount of matches within a string)
 	// borrowed from stack overflow (benchmarked to be significantly faster than regexp)
@@ -1149,6 +1200,13 @@ if (!('forEach' in Array.prototype)) {
 			}
 		}
 	};
+}
+
+// trim - IE :(
+if (!String.prototype.trim) {
+  String.prototype.trim = function () {
+    return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+  };
 }
 
 // JSON shim (import CDN copy of json2 if JSON is missing)
