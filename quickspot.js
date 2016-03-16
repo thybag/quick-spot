@@ -669,6 +669,7 @@
 
 		// Accesser to primary "this" for internal objs
 		var here = this;
+
 		// private methods
 		var ds = {};
 
@@ -733,7 +734,16 @@
 		 */
 		this.find = function(search, col){
 			search = here.options.string_filter(search);
-			this.results = ds.find(search, this.data_filtered, col);
+
+			if (here.options.allow_partial_matches === true){
+				here.results = this.data_filtered;
+				search.split(" ").forEach(function(term){
+					here.results = ds.find(term, here.results, col);
+				});
+			} else {
+				this.results = ds.find(search, this.data_filtered, col);
+			}
+
 			return this;
 		};
 
@@ -996,7 +1006,8 @@
 		// Specify preset options later so methods all exist
 		this.options = {
 			"string_filter": ds.simplfy_strings,
-			"disable_occurrence_weighting": false
+			"disable_occurrence_weighting": false,
+			"allow_partial_matches": true
 		};
 
 		// Setup data store
