@@ -976,17 +976,20 @@
 			return score;
 		};
 
+		/**
+		 * Simplify strings
+		 * Removes special chars and spacing for matchable values
+		 *
+		 * @param str - String to simplify
+		 * @return simplified string
+		 */
 		ds.simplfy_strings = function(str){
-			// lower case
+			// all lower ase
 			str = str.toLowerCase();
-
-			// remove ' " ( ) , . ?
-			str = str.replace(/(\"|\'|\,|\.|\)|\(|\-)/g, "");
-
-			// & = and
+			// & -> and
 			str = str.replace(/\&/g, "and");
-
-			return str;
+			// Strip anything other than a-z0-9 and spaces between words
+			return str.replace(/[^a-z 0-9]/g, "").replace(/\s+/g, " ").trim();
 		};
 
 		// Specify preset options later so methods all exist
