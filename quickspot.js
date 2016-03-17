@@ -56,6 +56,7 @@
 			// default options
 			this.target.focus();
 			this.target.value = "";
+			this.lastValue = "";
 
 			// get sorting function
 			var sort_method = (typeof custom_sort === "function") ? custom_sort : function(a, b){ return (a.__keyvalue > b.__keyvalue) ? 1 : -1; };
