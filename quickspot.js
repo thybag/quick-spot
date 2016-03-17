@@ -55,10 +55,10 @@
 		this.showAll = function(unfiltered, custom_sort){
 			// default options
 			this.target.focus();
-			this.target.value = '';
+			this.target.value = "";
 
 			// get sorting function
-			var sort_method = (typeof custom_sort === 'function') ? custom_sort : function(a, b){ return (a.__keyvalue > b.__keyvalue) ? 1 : -1; };
+			var sort_method = (typeof custom_sort === "function") ? custom_sort : function(a, b){ return (a.__keyvalue > b.__keyvalue) ? 1 : -1; };
 
 			// Grab data set
 			here.results = here.datastore.all(unfiltered).sort_results_by(sort_method).get();
@@ -89,7 +89,8 @@
 		 * @param options.auto_highlight - Automatically attempt to highlight search text in result items. (true|false - default false)
 		 * @param options.max_results - Maximum results to display at any one time (after searching/ordering, results after the cut off won't be rendered. 0 = unlimited)
 		 * @param options.screenreader - Experimental screen reader helper (true|false)
-		 * @param option.css_class_prefix - Defaults to "quickspot". Can be used to namespace quickspot classes
+		 * @param options.css_class_prefix - Defaults to "quickspot". Can be used to namespace quickspot classes
+		 * @param options.allow_partial_matches - Filter results by individual words rather than by the full phrase. This is enabled by default. (true|false)
 		 *
 		 ** Extend methods
 		 * @param options.display_handler - overwrites default display method.
@@ -1223,7 +1224,7 @@ if (!("forEach" in Array.prototype)) {
 // trim - IE :(
 if (!String.prototype.trim) {
   String.prototype.trim = function () {
-    return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+    return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, "");
   };
 }
 
