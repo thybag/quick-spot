@@ -1,8 +1,12 @@
 {
   "name": "quick-spot",
-  "version": "0.7.8",
+  "version": "0.8.0",
   "description": "Quickspot is a fast, flexible JSON powered in-memory search.",
   "main": "quickspot.js",
+  "files": [
+    "quickspot.js",
+    "quickspot.css"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -19,5 +23,12 @@
   "bugs": {
     "url": "https://github.com/thybag/quick-spot/issues"
   },
-  "homepage": "https://github.com/thybag/quick-spot#readme"
+  "homepage": "https://github.com/thybag/quick-spot#readme",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-connect": "^1.0.0",
+    "grunt-contrib-uglify": "^1.0.1",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-eslint": "^18.0.0"
+  }
 }
