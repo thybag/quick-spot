@@ -399,7 +399,7 @@
 
 		/**
 		 * On: Quick-spot click off (blur)
-		 * If it wasn"t one of results that was selected, close results pane
+		 * If it wasn't one of results that was selected, close results pane
 		 */
 		methods.handleBlur = function(event){
 			// is hide on blur enabled
