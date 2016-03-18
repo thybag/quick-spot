@@ -18,6 +18,7 @@
 		this.dom = null;		// ref to search results DOM object
 		this.container = null;  // ref to container DOM object
 		this.lastValue = "";	// last searched value
+		this.resultsVisible = false; // are search results currently visable
 
 		// "here" is kinda a global "this" for quickspot
 		var here = this;
@@ -66,7 +67,22 @@
 
 			// & render it all
 			methods.render_results(here.results);
-		}
+		};
+
+		// Listener helper
+		this.on = function(event, callback){
+			util.addListener(here.target, event, callback);
+		};
+
+		// show helper
+		this.showResults = function(){
+			methods.showResults();
+		};
+
+		// hide helper
+		this.hideResults = function(){
+			methods.hideResults();
+		};
 
 		/**
 		 * Attach a new quick-spot search to the page
@@ -350,10 +366,12 @@
 
 		/**
 		 * On: Quick-spot focus
-		 * Display search results (assuming there are any)
+		 * If box is closed, display search results again (assuming there are any)
 		 */
 		methods.handleFocus = function(event){
-			methods.findResultsFor(here.target.value);
+			if (!here.resultsVisible){
+				methods.findResultsFor(here.target.value);
+			}
 		};
 
 		/**
@@ -645,7 +663,8 @@
 			} else {
 				here.container.style.display = "none";
 			}
-
+			// hide is complete
+			here.resultsVisible = false;
 		};
 		/**
 		 * Show QS results
@@ -658,6 +677,8 @@
 			} else {
 				here.container.style.display = "block";
 			}
+			// show is complete
+			here.resultsVisible = true;
 		};
 
 		// Default configurtion
@@ -1099,6 +1120,14 @@
 			obj.addEventListener(event, callback, false);
 		} else {
 			obj.attachEvent("on" + event, callback);
+		}
+	};
+
+	util.removeListener = function(obj, event, callback){
+		if (window.removeEventListener){
+			obj.removeEventListener(event, callback, false);
+		} else {
+			obj.detachEvent("on" + event, callback);
 		}
 	};
 
