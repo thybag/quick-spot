@@ -2,24 +2,18 @@
 	position:relative;
 	/*Oddly IE7 is fine without this, IE8 on the other hand gets a bit confused*/
 	position:absolute\9; 
+	display:inline-block;
  }
-.quickspot-container input {
-	height: 20px;
-	margin-top:5px;
-	padding:4px 6px;
-}
+.quickspot-container input {}
 .quickspot-results-container {
-	width:340px;
+	width:100%;
 	position:absolute;
-	top:35px;
 	left:0;
 	z-index:9999;
-	border-radius: 0px;
-	border:solid 1px #08c;
+	border:solid 1px #777;
 	background:#fff;
 }
 .quickspot-results-container .quickspot-results {
-
 	max-height:380px;
 	overflow:auto;
 }
@@ -30,6 +24,6 @@
 	cursor:pointer;
 }
 .quickspot-results-container .quickspot-results .quickspot-result.selected{
-	background:#08c;
+	background:#777;
 	color:#fff;
 }
