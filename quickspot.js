@@ -676,7 +676,7 @@
 				here.options.show_results(here.container, here);
 			} else {
 				here.container.style.display = "block";
-			}@
+			}
 			// show is complete
 			here.resultsVisible = true;
 		};
