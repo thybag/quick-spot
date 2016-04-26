@@ -301,10 +301,14 @@
 		methods.screenreaderHelper = function(){
 
 			// create screen reader element
-			var reader = document.createElement("span");
+			var reader = document.createElement("div");
 			reader.setAttribute("aria-live", "assertive");
+			reader.setAttribute("aria-relevant", "additions");
 			reader.className = "screenreader";
 			reader.setAttribute("style", "position: absolute!important; clip: rect(1px 1px 1px 1px); clip: rect(1px,1px,1px,1px);");
+
+			here.container.setAttribute("aria-hidden", 'true');
+			
 			// Add to DOM
 			here.target.parentNode.appendChild(reader);
 
@@ -314,19 +318,20 @@
 				if (typing) clearTimeout(typing);
 				typing = setTimeout(function(){
 					if (here.results.length === 0){
-						reader.innerHTML = "No suggestions found. Hit enter to search.";
+						reader.innerHTML = "<p>No suggestions found. Hit enter to search.</p>";
 					} else {
-						reader.innerHTML = "Found suggestions. Go to " + here.results[here.selectedIndex][here.options.display_name] + "?";
+						reader.innerHTML = "<p>"+here.results.length +" suggestions. 1. Go to " + here.results[here.selectedIndex][here.options.display_name] + "?</p>";
 					}
 				}, 400);
 			});
 			// Announce selection
 			util.addListener(here.target, "quickspot:select", function(){
-				reader.innerHTML = "Go to " + here.results[here.selectedIndex][here.options.display_name] + "?";
+				reader.innerHTML = "<p>"+(here.selectedIndex+1)+". Go to " + here.results[here.selectedIndex][here.options.display_name] + "?</p>";
 			});
-			// Announce selection of link
+
+			// Announce invocation of link
 			util.addListener(here.target, "quickspot:activate", function(){
-				reader.innerHTML = "Loading...";
+				reader.innerText = "<p>Loading...</p>";
 			});
 		};
 
