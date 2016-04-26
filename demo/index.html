@@ -3,19 +3,55 @@
 	<head>
 		<title>Quick-Spot - A simple high speed JSON search</title>
 
-		<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap.min.css" rel="stylesheet" />
+		<link href="//maxcdn.bootstrapcdn.com/bootswatch/3.3.6/flatly/bootstrap.min.css" rel="stylesheet">
 		<link href="../quickspot.css" rel="stylesheet" />
 		<style type='text/css'>
-			.container-medium {
-				margin: 0 auto;
-    			max-width: 820px;
-			}
-			.container-medium > hr {
-		        margin: 20px 0;
-			}
-			.navbar {
-		    	/* margin: 20px 0;*/
-			}		
+.quickspot-container {
+		width:100%;
+}
+.quickspot-container input {
+	border-radius: 0px;
+}
+.quickspot-container input:focus, .quickspot-results-container {
+	border-color: #15a589;
+}
+.quickspot-results-container .quickspot-results .quickspot-result {
+	color: #000;
+	padding:8px 10px;
+}
+.quickspot-results-container .quickspot-results .quickspot-result.selected{
+	background:#15a589;
+	color:#fff;
+}
+
+/*
+
+
+.quickspot-results-container {
+	width:340px;
+	position:absolute;
+	top:35px;
+	left:0;
+	z-index:9999;
+	border-radius: 0px;
+	border:solid 1px #08c;
+	background:#fff;
+}
+.quickspot-results-container .quickspot-results {
+	max-height:380px;
+	overflow:auto;
+}
+.quickspot-results-container .quickspot-results .quickspot-result {
+	padding:8px 10px;
+	display:block;
+	text-decoration: none;
+	cursor:pointer;
+}
+.quickspot-results-container .quickspot-results .quickspot-result.selected{
+	background:#15a589;
+	color:#fff;
+}
+*/
 		</style>
 
 		<script type='text/javascript' src='../quickspot.js'></script>
@@ -117,7 +153,7 @@
 				"data":test_data, 
 				"target":"searchbox2",
 				"display_handler": function(co){
-					return '<strong>'+co.name+'</strong> - '+co.award+'<br><small>'+co.ucas+' / '+co.subject+'</small>';
+					return co.name+' - '+co.award+'<br><small>'+co.ucas+' / '+co.subject+'</small>';
 				},
 				"click_handler": function(co){
 					// You would probably want to do something more useful here
@@ -130,41 +166,30 @@
 		</script>
 	</head>
 	<body>
-		<div class="container-medium">
+		<div class="container">
 			<div class="masthead">
-	        	<ul class="nav nav-pills pull-right">
-			          <li class="active"><a href="#">Home</a></li>
-			          <li><a href="http://github.com/thybag/quick-spot">Github</a></li>
-	        	</ul>
-	        	<h3 class="muted" >Quick Spot Demo</h3>
-	        </div>
-	        <hr>
-	        <div class='row'>
-		        <div class='span5'>
+				<ul class="nav nav-pills pull-right">
+					  <li class="active"><a href="#">Home</a></li>
+					  <li><a href="http://github.com/thybag/quick-spot">Github</a></li>
+				</ul>
+				<h3 class="muted" >Quick Spot Demo</h3>
+			</div>
+			<hr>
+			<div class='row'>
+				<div class='col-sm-6'>
 
-		        	 <h4 style='height:50px;'>Normal usage</h4>
-
-		        	 <div class=" navbar  navbar-inverse">
-				      	<div class="navbar-inner">
-					      	<div class='search_bar'>
-					      		<div class="navbar-form pull-left">
-									<div class='quickspot-container'><input type='text' id='searchbox' placeholder='Try me...' /></div>
-								</div>
-							</div>
+					<div class="panel panel-default">
+						<div class="panel-heading">Normal usage</div>
+						<div class="panel-body">
+							<div class='quickspot-container'><input type='text' id='searchbox' placeholder='Try me...' class="form-control"/></div>
 						</div>
 					</div>
-		        </div>
-		        <div class='span5' style='margin-left:58px;'>
-
-					<h4 style='height:50px;'>With custom display (alerts when clicked)</h4>
-
-					<div class=" navbar  navbar-inverse">
-				      	<div class="navbar-inner">
-					      	<div class='search_bar'>
-					      		<div class="navbar-form pull-left">
-									<div class='quickspot-container'><input type='text' id='searchbox2' placeholder='Try me also' /></div>
-								</div>
-							</div>
+				</div>
+				<div class='col-sm-6'>
+					<div class="panel panel-default">
+						<div class="panel-heading">With custom display </div>
+						<div class="panel-body">
+							<div class='quickspot-container'><input type='text' id='searchbox2' placeholder='Try me also' class="form-control"/></div>
 						</div>
 					</div>
 				</div>

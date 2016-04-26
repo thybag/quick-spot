@@ -392,7 +392,7 @@
 		methods.handleKeyDown = function(event){
 			// Do nothing if its a control key
 			var key = event.keyCode;
-			if(key===13||key===38||key===40){
+			if (key === 13 || key === 38 || key === 40){
 				return util.preventDefault(event);
 			}
 
@@ -406,23 +406,23 @@
 		methods.handleKeyUp = function(event){
 
 			var key = event.keyCode;
-			
-			if(key === 13){ //enter
+
+			if (key === 13){ //enter
 				methods.handleSelection(here.results[here.selectedIndex]);
 			}
-			if(key === 38 && here.results.length !== 0){ //up
+			if (key === 38 && here.results.length !== 0){ //up
 				methods.selectIndex(here.selectedIndex - 1);
 				methods.scrollResults("up");
 				util.triggerEvent(here.target, "quickspot:select");
 			}
-			if(key === 40 && here.results.length !== 0){ // down
+			if (key === 40 && here.results.length !== 0){ // down
 				methods.selectIndex(here.selectedIndex + 1);
 				methods.scrollResults("down");
 				util.triggerEvent(here.target, "quickspot:select");
 			}
 
 			// prevent default action
-			if(key === 13 || key === 38 || key === 40){
+			if (key === 13 || key === 38 || key === 40){
 				util.preventDefault(event);
 			}
 		};
@@ -565,7 +565,7 @@
 				}
 
 				// Automatically highlight matching portion of text
-				if (typeof here.options.auto_highlight !== "undefined" && here.options.auto_highlight === true){
+				if (here.options.auto_highlight === true){
 					// Attempt to avoid sticking strong"s in the middle of html tags
 					// http://stackoverflow.com/questions/18621568/regex-replace-text-outside-html-tags#answer-18622606
 					result_str = result_str.replace(RegExp("(" + here.lastValue + ")(?![^<]*>|[^<>]*<\/)", "i"), "<strong>$1</strong>");
@@ -699,6 +699,7 @@
 		this.options = {
 			"key_value": "name",
 			"css_class_prefix": "quickspot",
+			"auto_highlight": true,
 			"no_results": methods.no_results,
 			"no_results_click": function(val, sbox){},
 			"error" : function(http_status, data) { console.log("[Quickspot] AJAX request failed with error " + http_status);}
@@ -812,10 +813,10 @@
 		 */
 		this.sort_results_by = function(search){
 
-			if(typeof search === "function"){
+			if (typeof search === "function"){
 				// sort by a custom function?
 				this.results.sort(search);
-			}else{
+			} else {
 				// sort by closest match
 				search = here.options.string_filter(search);
 				this.results = ds.sort_by_match(this.results, search);
@@ -845,7 +846,7 @@
 		this.all = function(unfiltered){
 			this.results = (unfiltered) ? this.data : this.data_filtered;
 			return this;
-		}
+		};
 
 		/**
 		 * filter data
@@ -1188,13 +1189,13 @@
 
 	// prevent default
 	util.preventDefault = function(event){
-		if (event.preventDefault) { 
-			event.preventDefault(); 
+		if (event.preventDefault) {
+			event.preventDefault();
 		} else {
 			event.returnValue = false;
 		}
 	};
-	
+
 	// High speed occurrences function (amount of matches within a string)
 	// borrowed from stack overflow (benchmarked to be significantly faster than regexp)
 	// http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
@@ -1277,9 +1278,9 @@ if (!("forEach" in Array.prototype)) {
 
 // trim - IE :(
 if (!String.prototype.trim) {
-  String.prototype.trim = function () {
-    return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, "");
-  };
+	String.prototype.trim = function () {
+		return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, "");
+	};
 }
 
 // JSON shim (import CDN copy of json2 if JSON is missing)
