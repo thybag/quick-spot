@@ -126,6 +126,7 @@
 		 * @param options.display_handler - overwrites default display method.
 		 * @param options.results_header - Callback that returns either a dom element or markup for the results box header
 		 * @param options.results_footer - Callback that returns either a dom element or markup for the results box footer
+		 * @param options.error - callback fired on AJAX failure
 		 *
 		 ** Events
 		 * quickspot:start - search is triggered
@@ -137,6 +138,7 @@
 		 * quickspot:result - result is shown
 		 * quickspot:resultsfound - search completes with results
 		 * quickspot:noresult - search completes with no results
+		 * quickspot:loaded - When quickspot is ready
 		 */
 		methods.attach = function(options){
 
@@ -163,10 +165,13 @@
 				here.options.display_name = here.options.key_value;
 			}
 
+			// Set init to wait for final load.
+			here.on("quickspot:loaded", methods.init);
+
 			//find data
 			if (typeof here.options.url !== "undefined"){
 				//Load data via ajax
-				util.ajaxGetJSON(options, methods.initialise_data);
+				util.ajaxGetJSON(here.options, methods.initialise_data);
 			} else if (typeof here.options.data !== "undefined"){
 				//Import directly provided data
 				methods.initialise_data(options.data);
@@ -175,7 +180,13 @@
 				console.log("Error: No datasource provided.");
 				return;
 			}
+		};
 
+		/**
+		 * Init - generate additional markup & hook up events on QS load
+		 *
+		 */
+		methods.init = function(){
 			// Setup basic DOM stuff for results
 			here.dom = document.createElement("div");
 			here.dom.className = here.options.css_class_prefix + "-results";
@@ -196,8 +207,8 @@
 			here.container.className = here.options.css_class_prefix + "-results-container";
 
 			// Attach header element if one exists
-			if (typeof options.results_header !== "undefined"){
-				var header = methods.get_option_contents_as_node(options.results_header, true);
+			if (typeof here.options.results_header !== "undefined"){
+				var header = methods.get_option_contents_as_node(here.options.results_header, true);
 				if (header){
 					here.container.appendChild(header);
 				}
@@ -207,9 +218,9 @@
 			here.container.appendChild(here.dom);
 
 			// Attach footer element if one exists
-			if (typeof options.results_footer !== "undefined"){
+			if (typeof here.options.results_footer !== "undefined"){
 				// Attempt to extract markup
-				var footer = methods.get_option_contents_as_node(options.results_footer, true);
+				var footer = methods.get_option_contents_as_node(here.options.results_footer, true);
 				if (footer){
 					here.container.appendChild(footer);
 				}
@@ -225,10 +236,10 @@
 			util.addListener(here.container, "blur", 	methods.handleKeyUp);
 
 			// Fire ready callback
-			if (typeof options.ready === "function") options.ready(here);
+			if (typeof here.options.ready === "function") here.options.ready(here);
 
 			// Enable screen reader support - disabled by default as is experimental
-			if (typeof options.screenreader !== "undefined" && options.screenreader === true){
+			if (typeof here.options.screenreader !== "undefined" && here.options.screenreader === true){
 				methods.screenreaderHelper();
 			}
 		};
@@ -649,6 +660,9 @@
 		methods.initialise_data = function(data){
 			// Set datastore
 			here.setDatastore( datastore.create(data, here.options) );
+			// Fire loaded event
+			util.triggerEvent(here.target, "quickspot:loaded");
+			// Fire callback if needed
 			if (typeof here.options.loaded !== "undefined") here.options.loaded(here.datastore);
 		};
 
@@ -686,7 +700,8 @@
 			"key_value": "name",
 			"css_class_prefix": "quickspot",
 			"no_results": methods.no_results,
-			"no_results_click": function(val, sbox){}
+			"no_results_click": function(val, sbox){},
+			"error" : function(http_status, data) { console.log("[Quickspot] AJAX request failed with error " + http_status);}
 		};
 	};
 
@@ -1097,9 +1112,18 @@
 		}
 
 		xmlhttp.onreadystatechange = function(){
-			if ((xmlhttp.readyState === 4) && (xmlhttp.status === 200)) {
-				// turn JSON in to real JS object & send it to the callback
-				callback(JSON.parse(xmlhttp.responseText));
+			if (xmlhttp.readyState === 4) {
+				if(xmlhttp.status === 200){
+					// turn JSON in to real JS object & send it to the callback
+					try{
+						callback(JSON.parse(xmlhttp.responseText));
+					}catch(e){
+						options.error('0', xmlhttp.responseText); //0 = js parse fail :(
+					}
+				} else {
+					// Call error callback
+					options.error(xmlhttp.status, xmlhttp.responseText);
+				}
 			}
 		};
 
