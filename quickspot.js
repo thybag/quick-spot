@@ -5,7 +5,10 @@
  * @repo https://github.com/thybag/quick-spot
  */
  (function(){
-	// Privately scoped quick spot object (we talk to the real world (global scope) via the attach method)
+ 	"use strict";
+
+	// Privately scoped quickspot object (we talk to the real world (global scope) via the attach method)
+	// Additional methods are available in initialised instance & within callbacks
 	var quickspot = function(){
 
 		// Internal datastore
@@ -17,8 +20,9 @@
 		this.target = null; 	// input acting as search box
 		this.dom = null;		// ref to search results DOM object
 		this.container = null;  // ref to container DOM object
+		this.reader = null; 	// ref to node containing screen reader helper
 		this.lastValue = "";	// last searched value
-		this.resultsVisible = false; // are search results currently visable
+		this.resultsVisible = false; // are search results currently visible
 
 		// "here" is kinda a global "this" for quickspot
 		var here = this;
@@ -40,7 +44,7 @@
 		// Public method to change "datastore" powering quickspot
 		this.setDatastore = function(store){
 
-			// if this isn't the inital boot, hide search results
+			// if this isn't the initial boot, hide search results
 			if (this.datastore !== null){
 				methods.hideResults();
 			}
@@ -105,7 +109,6 @@
 		 * @param options.prevent_headers - Don't add custom headers such as X-Requested-With (will avoid options requests)
 		 * @param options.auto_highlight - Automatically attempt to highlight search text in result items. (true|false - default false)
 		 * @param options.max_results - Maximum results to display at any one time (after searching/ordering, results after the cut off won't be rendered. 0 = unlimited)
-		 * @param options.screenreader - Experimental screen reader helper (true|false)
 		 * @param options.css_class_prefix - Defaults to "quickspot". Can be used to namespace quickspot classes
 		 * @param options.allow_partial_matches - Filter results by individual words rather than by the full phrase. This is enabled by default. (true|false)
 		 *
@@ -122,10 +125,12 @@
 		 * @param options.data_pre_parse - callback provided with raw data object & options - can be used to rearrange data to work with quick-spot (if needed)
 		 * @param options.parse_results - Manipulate result array before render.
 		 * @param options.hide_results - override method to hide results container
-		  *@param options.show_results - override method to show results container
+		 * @param options.show_results - override method to show results container
 		 * @param options.display_handler - overwrites default display method.
-		 * @param options.results_header - Callback that returns either a dom element or markup for the results box header
-		 * @param options.results_footer - Callback that returns either a dom element or markup for the results box footer
+		 * @param options.screenreader_result_text - overwrite method used to return "screen reader text" from a given result object
+		 * @param options.results_header - Callback that returns either a DOM element or markup for the results box header
+		 * @param options.results_footer - Callback that returns either a DOM element or markup for the results box footer
+		 * @param options.error - callback fired on AJAX failure
 		 *
 		 ** Events
 		 * quickspot:start - search is triggered
@@ -137,6 +142,7 @@
 		 * quickspot:result - result is shown
 		 * quickspot:resultsfound - search completes with results
 		 * quickspot:noresult - search completes with no results
+		 * quickspot:loaded - When quickspot is ready
 		 */
 		methods.attach = function(options){
 
@@ -163,10 +169,13 @@
 				here.options.display_name = here.options.key_value;
 			}
 
+			// Set init to wait for final load.
+			here.on("quickspot:loaded", methods.init);
+
 			//find data
 			if (typeof here.options.url !== "undefined"){
 				//Load data via ajax
-				util.ajaxGetJSON(options, methods.initialise_data);
+				util.ajaxGetJSON(here.options, methods.initialise_data);
 			} else if (typeof here.options.data !== "undefined"){
 				//Import directly provided data
 				methods.initialise_data(options.data);
@@ -175,7 +184,13 @@
 				console.log("Error: No datasource provided.");
 				return;
 			}
+		};
 
+		/**
+		 * Init - generate additional markup & hook up events on QS load
+		 *
+		 */
+		methods.init = function(){
 			// Setup basic DOM stuff for results
 			here.dom = document.createElement("div");
 			here.dom.className = here.options.css_class_prefix + "-results";
@@ -194,10 +209,11 @@
 			here.container.setAttribute("tabindex", "100");
 			here.container.style.display = "none";
 			here.container.className = here.options.css_class_prefix + "-results-container";
+			here.container.setAttribute("aria-hidden", 'true'); // Screenreader is provided via "input" field, so ensure results block is ignored
 
 			// Attach header element if one exists
-			if (typeof options.results_header !== "undefined"){
-				var header = methods.get_option_contents_as_node(options.results_header, true);
+			if (typeof here.options.results_header !== "undefined"){
+				var header = methods.get_option_contents_as_node(here.options.results_header, true);
 				if (header){
 					here.container.appendChild(header);
 				}
@@ -207,9 +223,9 @@
 			here.container.appendChild(here.dom);
 
 			// Attach footer element if one exists
-			if (typeof options.results_footer !== "undefined"){
+			if (typeof here.options.results_footer !== "undefined"){
 				// Attempt to extract markup
-				var footer = methods.get_option_contents_as_node(options.results_footer, true);
+				var footer = methods.get_option_contents_as_node(here.options.results_footer, true);
 				if (footer){
 					here.container.appendChild(footer);
 				}
@@ -225,12 +241,10 @@
 			util.addListener(here.container, "blur", 	methods.handleKeyUp);
 
 			// Fire ready callback
-			if (typeof options.ready === "function") options.ready(here);
+			if (typeof here.options.ready === "function") here.options.ready(here);
 
-			// Enable screen reader support - disabled by default as is experimental
-			if (typeof options.screenreader !== "undefined" && options.screenreader === true){
-				methods.screenreaderHelper();
-			}
+			// Enable screen reader support
+			here.reader = methods.screenreaderHelper();
 		};
 
 		/**
@@ -289,34 +303,58 @@
 		 */
 		methods.screenreaderHelper = function(){
 
+			var result_text, typing;
+
 			// create screen reader element
-			var reader = document.createElement("span");
+			var reader = document.createElement("div");
 			reader.setAttribute("aria-live", "assertive");
+			reader.setAttribute("aria-relevant", "additions");
 			reader.className = "screenreader";
 			reader.setAttribute("style", "position: absolute!important; clip: rect(1px 1px 1px 1px); clip: rect(1px,1px,1px,1px);");
 			// Add to DOM
 			here.target.parentNode.appendChild(reader);
 
 			// When user finishes typing, read result status
-			var typing;
 			util.addListener(here.target, "quickspot:end", function(){
 				if (typing) clearTimeout(typing);
 				typing = setTimeout(function(){
-					if (here.results.length === 0){
-						reader.innerHTML = "No suggestions found. Hit enter to search.";
+					if (here.results.length === 0) {
+						methods.screenReaderAnnounce("No suggestions found. Hit enter to search.");
 					} else {
-						reader.innerHTML = "Found suggestions. Go to " + here.results[here.selectedIndex][here.options.display_name] + "?";
+						result_text = here.options.screenreader_result_text(here.results[here.selectedIndex], here.selectedIndex, here);
+						methods.screenReaderAnnounce(here.results.length + " suggestions. " + result_text);
 					}
 				}, 400);
 			});
+
 			// Announce selection
 			util.addListener(here.target, "quickspot:select", function(){
-				reader.innerHTML = "Go to " + here.results[here.selectedIndex][here.options.display_name] + "?";
+				result_text = here.options.screenreader_result_text(here.results[here.selectedIndex], here.selectedIndex, here);
+				methods.screenReaderAnnounce(result_text);
 			});
-			// Announce selection of link
+
+			// Announce invocation of link
 			util.addListener(here.target, "quickspot:activate", function(){
-				reader.innerHTML = "Loading...";
+				methods.screenReaderAnnounce("Loading...");
 			});
+
+			return reader;
+		};
+
+		/**
+		 * Get screen-reader item text from given result
+		 * This is a default implementation & can be overwritten, returns items in format of "1. Display Name"
+		 * The idx number refers to its position within the result set
+		 *
+		 * @param {Result} result
+		 * @return {string} screen reader text
+		 */
+		methods.getScreenReaderResultText = function(result, idx){
+			if(typeof result.qs_screenreader_text === 'string'){
+				return (idx + 1) + ". " + result.qs_screenreader_text;
+			}
+
+			return (idx + 1) + ". Go to " + result[here.options.display_name] + "?";
 		};
 
 		/**
@@ -641,6 +679,16 @@
 		};
 
 		/**
+		 * screenreader: Read tex
+		 * Write text to announce block. This makes screenreader read provided text to the user
+		 *
+		 * @param text - text to read
+		 */
+		methods.screenReaderAnnounce = function(text){
+			here.reader.innerHTML = "<p>" + text + "</p>"; // must be wrapped in p to trigger correct behavior
+		};
+
+		/**
 		 * Initialise data
 		 * create a new datastore to allow quick access, filtering and searching of provided data.
 		 *
@@ -649,6 +697,9 @@
 		methods.initialise_data = function(data){
 			// Set datastore
 			here.setDatastore( datastore.create(data, here.options) );
+			// Fire loaded event
+			util.triggerEvent(here.target, "quickspot:loaded");
+			// Fire callback if needed
 			if (typeof here.options.loaded !== "undefined") here.options.loaded(here.datastore);
 		};
 
@@ -666,6 +717,7 @@
 			// hide is complete
 			here.resultsVisible = false;
 		};
+
 		/**
 		 * Show QS results
 		 */
@@ -687,7 +739,9 @@
 			"css_class_prefix": "quickspot",
 			"auto_highlight": true,
 			"no_results": methods.no_results,
-			"no_results_click": function(val, sbox){}
+			"screenreader_result_text": methods.getScreenReaderResultText,
+			"no_results_click": function(val, sbox){},
+			"error" : function(http_status, data) { console.log("[Quickspot] AJAX request failed with error " + http_status);}
 		};
 	};
 
@@ -1098,9 +1152,18 @@
 		}
 
 		xmlhttp.onreadystatechange = function(){
-			if ((xmlhttp.readyState === 4) && (xmlhttp.status === 200)) {
-				// turn JSON in to real JS object & send it to the callback
-				callback(JSON.parse(xmlhttp.responseText));
+			if (xmlhttp.readyState === 4) {
+				if(xmlhttp.status === 200){
+					// turn JSON in to real JS object & send it to the callback
+					try{
+						callback(JSON.parse(xmlhttp.responseText));
+					}catch(e){
+						options.error('0', xmlhttp.responseText); //0 = js parse fail :(
+					}
+				} else {
+					// Call error callback
+					options.error(xmlhttp.status, xmlhttp.responseText);
+				}
 			}
 		};
 
