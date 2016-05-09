@@ -58,6 +58,7 @@ In addition you can also extend quickspots base functionality significantly thro
 * `options.parse_results(search_results, quickspot_options)` - Manipulate the result array before render.
 * `options.string_filter(string)` - parse string for quickspot searching (Default will make string lower case, and remove punctuation characters)
 * `options.no_search_handler(searchbox_dom_element, quickspot_instance)` - Callback is run whenever the search box becomes empty
+* `options.screenreader_result_text(item_data result_idx, quickspot_instance)` - callback to override how text describing a result for screen-readers is generated
 * `options.hide_results(results_container, quickspot_instance)` - Callback to override method that hides results container
 * `options.show_results(results_container, quickspot_instance)` - Callback to override method that shows results container
 * `options.loaded(datastore)` - Callback is fired when a data store has been loaded
