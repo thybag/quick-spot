@@ -46,6 +46,8 @@ QuickSpot implements a number of advanced methods which can be used to further c
 * `options.max_results` - Maximum results to display at any one time (applied after searching/ordering, results after the cut off will not be rendered. 0 = show unlimited results)
 * `options.css_class_prefix` - Set custom class name prefix for quickspot. By default "quickspot" will be used.
 * `options.allow_partial_matches` - Filter results by individual words rather than by the full phrase. This is enabled by default. (true|false)
+* `options.show_all_on_blank_search` - True|false - Rather than hiding when no search terms are entered, this will instead cause quickspot to list all valid results (results that are not filtered out). False by default.
+* `options.events` - Quick method of binding up events. Takes an object of event name, callback pairs.
 
 In addition you can also extend quickspots base functionality significantly through the use of the following callbacks.
 
@@ -63,6 +65,7 @@ In addition you can also extend quickspots base functionality significantly thro
 * `options.show_results(results_container, quickspot_instance)` - Callback to override method that shows results container
 * `options.loaded(datastore)` - Callback is fired when a data store has been loaded
 * `options.ready(quickspot_instance)` - Callback fired when quick-spot is fully up & running
+* `options.error(http_status, http_text)` - Callback fired on AJAX failure
 * `options.results_header` - Header for results container (can be Node/ID/raw html or callback returning one of the previous)
 * `options.results_footer` - Footer for results container (can be Node/ID/raw html or callback returning one of the previous)
 
@@ -83,3 +86,16 @@ A few additional options can be accessed via setting certain attributes on the s
 * `qs_result_class` - When set, the class name stored in the attribute will be used as a class on the rendered result's anchor element.
 * `qs_screenreader_text` - Sets text to be read by screenreader for this result
 * `__searchvalues` and `__keyvalue` - By setting both these values, quickspot will assume all data has already been "processed" in to valid quickspot search objects. If only one is set, quickspot will overwrite these values via its normal pre-processing mechanism. Please ensure the `string_filter` returns the same formatting.
+
+Finally, quickspot also exposes a number of methods on the created instance.
+
+ * `qs.on(event, callback)` - Helper for quickly attaching events to quickspot
+ * `qs.filter(filter_value)` - Filter data set, applies to all searches on datastore
+ * `qs.filter(filter_value, attribute)` - Apply dataset filter to a single attribute.
+ * `qs.clearFilters()` - Removes all currently attached filters from datastore
+ * `qs.showResults()` - Show results container
+ * `qs.hideResults()` - Hide results container
+ * `qs.setDatastore(newDatastore)` - Set a new datastore. Datastores can be created via `quickspot.datastore({url: "bla"});`
+ * `qs.refresh()` - Refresh current search results (use when updating a datastore)
+ * `qs.datastore` - provides access to the datastore object itself.
+ 
