@@ -63,14 +63,12 @@
 			this.target.value = "";
 			this.lastValue = "";
 
-			// get sorting function
-			var sort_method = (typeof custom_sort === "function") ? custom_sort : function(a, b){ return (a.__keyvalue > b.__keyvalue) ? 1 : -1; };
-
 			// Grab data set
-			here.results = here.datastore.all(unfiltered).sort_results_by(sort_method).get();
+			here.results = here.datastore.all(unfiltered).get();
 
 			// & render it all
 			methods.render_results(here.results);
+			methods.showResults();
 		};
 
 		// Listener helper
@@ -86,6 +84,22 @@
 		// hide helper
 		this.hideResults = function(){
 			methods.hideResults();
+		};
+
+		// Refresh current listing
+		this.refresh = function(){
+			methods.refresh();
+		};
+
+		// Apply filter to datastore - this will apply to all search values until clearFilters is called.
+		// Multiple filters can be added
+		this.filter = function(filter_value, filter_column){
+			this.datastore.filter(filter_value, filter_column);
+		};
+
+ 		// Clear all filters currently attached to datastore
+		this.clearFilters = function(){
+			this.datastore.clear_filters();
 		};
 
 		/**
@@ -111,6 +125,8 @@
 		 * @param options.max_results - Maximum results to display at any one time (after searching/ordering, results after the cut off won't be rendered. 0 = unlimited)
 		 * @param options.css_class_prefix - Defaults to "quickspot". Can be used to namespace quickspot classes
 		 * @param options.allow_partial_matches - Filter results by individual words rather than by the full phrase. This is enabled by default. (true|false)
+		 * @param options.show_all_on_blank_search - Rather than hiding the results (default) - instead show full results list when no search term has been entered
+		 * @param options.events - Quick way of binding some initial events on load. Simply an object containing event/callback pairs.
 		 *
 		 ** Extend methods
 		 * @param options.display_handler - overwrites default display method.
@@ -131,6 +147,15 @@
 		 * @param options.results_header - Callback that returns either a DOM element or markup for the results box header
 		 * @param options.results_footer - Callback that returns either a DOM element or markup for the results box footer
 		 * @param options.error - callback fired on AJAX failure
+		 *
+		 * Methods
+		 * qs.refresh() - refresh current search results (use when updating a datastore)
+		 * qs.showResults() - Show results
+		 * qs.hideResults() - Hide results
+		 * qs.setDatastore(newDatastore) - Set a new datastore
+		 * qs.on(event, callback) - Attach an event
+		 * qs.filter(value, filter_on_attribuite) - Applys filter to data set
+		 * qs.clearFilters() - removes filters from dataset
 		 *
 		 ** Events
 		 * quickspot:start - search is triggered
@@ -208,7 +233,7 @@
 			// Set container attributes
 			here.container.setAttribute("tabindex", "100");
 			here.container.style.display = "none";
-			here.container.className = here.options.css_class_prefix + "-results-container";
+			here.container.className = here.container.className + " " + here.options.css_class_prefix + "-results-container";
 			here.container.setAttribute("aria-hidden", 'true'); // Screenreader is provided via "input" field, so ensure results block is ignored
 
 			// Attach header element if one exists
@@ -240,11 +265,19 @@
 			// Allows use of commands when only results are selected (if we are not linking off somewhere)
 			util.addListener(here.container, "blur", 	methods.handleKeyUp);
 
+			// Enable screen reader support
+			here.reader = methods.screenreaderHelper();
+
 			// Fire ready callback
 			if (typeof here.options.ready === "function") here.options.ready(here);
 
-			// Enable screen reader support
-			here.reader = methods.screenreaderHelper();
+			// Attach any events in options.events via the `on` method
+			if(typeof here.options.events === "object"){
+				for(var evt in here.options.events){
+					here.on(evt, here.options.events[evt]);
+				}
+			}
+			
 		};
 
 		/**
@@ -350,12 +383,37 @@
 		 * @return {string} screen reader text
 		 */
 		methods.getScreenReaderResultText = function(result, idx){
-			if(typeof result.qs_screenreader_text === 'string'){
+			if(result && typeof result.qs_screenreader_text === 'string'){
 				return (idx + 1) + ". " + result.qs_screenreader_text;
 			}
 
 			return (idx + 1) + ". Go to " + result[here.options.display_name] + "?";
 		};
+
+		/**
+		 * Refresh current quickspot result listing
+		 * Causes quickspot to re perform the current search & redraw its output.
+		 * Useful when applying filters to the datastore
+		 *
+		 * @return void
+		 */
+		methods.refresh = function(){
+			// Event for quickspot start (doesn't start if no search is triggered)
+			util.triggerEvent(here.target, "quickspot:start");
+
+			// Make selected index 0 again
+			here.selectedIndex = 0;
+
+			// Perform search, order results & render them
+			here.results = here.datastore.search(here.lastValue).get();
+
+			// Render
+			methods.render_results(here.results);
+
+			// Event for quickspot end
+			util.triggerEvent(here.target, "quickspot:end");
+			util.triggerEvent(here.target, "quickspot:result");
+		}
 
 		/**
 		 * Find and display results for a given search term
@@ -369,9 +427,14 @@
 				if (typeof here.options.no_search_handler === "function"){
 					here.options.no_search_handler(here.dom, here);
 				}
-				//show nothing if no value
-				here.results = [];
-				methods.hideResults();
+
+				if(here.options.show_all_on_blank_search){
+					here.showAll();
+				}else{
+					//show nothing if no value
+					here.results = [];
+					methods.hideResults();
+				}
 				return;
 			}
 
@@ -383,23 +446,12 @@
 				return;
 			}
 
-			// Event for quickspot start (doesnt start if no search is triggered)
-			util.triggerEvent(here.target, "quickspot:start");
-
 			// Update last searched value
 			here.lastValue = search;
-
-			// Make selected index 0 again
-			this.selectedIndex = 0;
-
-			// Perform search, order results & render them
-			here.results = here.datastore.search(search).get();
-
-			methods.render_results(here.results);
-
-			// Event for quickspot end
-			util.triggerEvent(here.target, "quickspot:end");
-			util.triggerEvent(here.target, "quickspot:result");
+			// refresh list
+			methods.refresh();
+			// show results
+			here.showResults();
 		};
 
 		/**
@@ -629,10 +681,9 @@
 
 			// Attach fragment
 			here.dom.appendChild(fragment);
-			methods.showResults();
 
 			// Select the initial value.
-			methods.selectIndex(this.selectedIndex);
+			methods.selectIndex(here.selectedIndex);
 		};
 
 		/**
@@ -738,6 +789,7 @@
 			"key_value": "name",
 			"css_class_prefix": "quickspot",
 			"auto_highlight": true,
+			"show_all_on_blank_search": false,
 			"no_results": methods.no_results,
 			"screenreader_result_text": methods.getScreenReaderResultText,
 			"no_results_click": function(val, sbox){},
@@ -855,6 +907,9 @@
 			if (typeof search === "function"){
 				// sort by a custom function?
 				this.results.sort(search);
+			} else if(search == ""){
+				// Use alphabetical sorting if no search term was provided.
+				this.results.sort(function(a, b){ return (a.__keyvalue > b.__keyvalue) ? 1 : -1; });
 			} else {
 				// sort by closest match
 				search = here.options.string_filter(search);
@@ -882,8 +937,10 @@
 		 * @param unfiltered - get all (Without filters)
 		 * @return this
 		 */
-		this.all = function(unfiltered){
+		this.all = function(unfiltered, sort_or_term){
 			this.results = (unfiltered) ? this.data : this.data_filtered;
+			// Sort all by either function or search term (if nothing is provided, falls back to alphabetical)
+			this.sort_results_by(typeof sort_or_term === 'undefined' ? '' : sort_or_term);
 			return this;
 		};
 
@@ -892,7 +949,7 @@
 		 * Apply a filter to the data. Filter will persist unit clear_filters is called.
 		 *
 		 * @param filter string
-		 * @param colum to apply filter to (by default will use all searchable cols)
+		 * @param on_col - column to apply filter to (by default will use all search-able cols)
 		 * @return this
 		 */
 		this.filter = function(filter, on_col){
@@ -900,10 +957,13 @@
 			if (typeof filter === "function"){
 				this.results = this.data_filtered = ds.findByFunction(filter, this.data_filtered);
 			} else {
-				filter = here.options.string_filter(filter);
+				// If searching on column, we need to use the full string (case, symbols and all) since
+				// this data is not pre-processed.
+				if(typeof on_col === "undefined") filter = here.options.string_filter(filter);
+
 				this.results = this.data_filtered = ds.find(filter, this.data_filtered, on_col);
 			}
-
+			console.log(this);
 			return this;
 		};
 
