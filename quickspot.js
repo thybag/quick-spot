@@ -234,7 +234,7 @@
 			here.container.setAttribute("tabindex", "100");
 			here.container.style.display = "none";
 			here.container.className = here.container.className + " " + here.options.css_class_prefix + "-results-container";
-			here.container.setAttribute("aria-hidden", 'true'); // Screenreader is provided via "input" field, so ensure results block is ignored
+			here.container.setAttribute("aria-hidden", "true"); // Screenreader is provided via "input" field, so ensure results block is ignored
 
 			// Attach header element if one exists
 			if (typeof here.options.results_header !== "undefined"){
@@ -383,7 +383,7 @@
 		 * @return {string} screen reader text
 		 */
 		methods.getScreenReaderResultText = function(result, idx){
-			if(result && typeof result.qs_screenreader_text === 'string'){
+			if(result && typeof result.qs_screenreader_text === "string"){
 				return (idx + 1) + ". " + result.qs_screenreader_text;
 			}
 
@@ -940,7 +940,7 @@
 		this.all = function(unfiltered, sort_or_term){
 			this.results = (unfiltered) ? this.data : this.data_filtered;
 			// Sort all by either function or search term (if nothing is provided, falls back to alphabetical)
-			this.sort_results_by(typeof sort_or_term === 'undefined' ? '' : sort_or_term);
+			this.sort_results_by(typeof sort_or_term === "undefined" ? "" : sort_or_term);
 			return this;
 		};
 
@@ -1218,7 +1218,7 @@
 					try{
 						callback(JSON.parse(xmlhttp.responseText));
 					}catch(e){
-						options.error('0', xmlhttp.responseText); //0 = js parse fail :(
+						options.error("0", xmlhttp.responseText); //0 = js parse fail :(
 					}
 				} else {
 					// Call error callback
