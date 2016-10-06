@@ -1,62 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Quick-Spot - A simple high speed JSON search</title>
+		<title>Quick-Spot - A simple, high speed, high flexibility JSON powered search</title>
 
 		<link href="//maxcdn.bootstrapcdn.com/bootswatch/3.3.6/flatly/bootstrap.min.css" rel="stylesheet">
 		<link href="../quickspot.css" rel="stylesheet" />
 		<style type='text/css'>
-.quickspot-container {
-		width:100%;
-}
-.quickspot-container input {
-	border-radius: 0px;
-}
-.quickspot-container input:focus, .quickspot-results-container {
-	border-color: #15a589;
-}
-.quickspot-results-container .quickspot-results .quickspot-result {
-	color: #000;
-	padding:8px 10px;
-}
-.quickspot-results-container .quickspot-results .quickspot-result.selected{
-	background:#15a589;
-	color:#fff;
-}
-
-/*
-
-
-.quickspot-results-container {
-	width:340px;
-	position:absolute;
-	top:35px;
-	left:0;
-	z-index:9999;
-	border-radius: 0px;
-	border:solid 1px #08c;
-	background:#fff;
-}
-.quickspot-results-container .quickspot-results {
-	max-height:380px;
-	overflow:auto;
-}
-.quickspot-results-container .quickspot-results .quickspot-result {
-	padding:8px 10px;
-	display:block;
-	text-decoration: none;
-	cursor:pointer;
-}
-.quickspot-results-container .quickspot-results .quickspot-result.selected{
-	background:#15a589;
-	color:#fff;
-}
-*/
+			.quickspot-container {
+					width:100%;
+			}
+			.quickspot-container input {
+				border-radius: 0px;
+			}
+			.quickspot-container input:focus, .quickspot-results-container {
+				border-color: #15a589;
+			}
+			.quickspot-results-container .quickspot-results .quickspot-result {
+				color: #000;
+				padding:8px 10px;
+			}
+			.quickspot-results-container .quickspot-results .quickspot-result.selected{
+				background:#15a589;
+				color:#fff;
+			}
 		</style>
 
 		<script type='text/javascript' src='../quickspot.js'></script>
 		<script type='text/javascript'>
-			//Note: this is sample data, ucas codes & other attributes just randomly made up
+			// Note: this is sample data, ucas codes & other attributes just randomly made up
 			var test_data = [	
 				{
 					"ucas": 		"UK89801",
