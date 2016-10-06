@@ -4,8 +4,8 @@
  * @author Carl Saggs
  * @repo https://github.com/thybag/quick-spot
  */
- (function(){
- 	"use strict";
+(function(){
+	"use strict";
 
 	// Privately scoped quickspot object (we talk to the real world (global scope) via the attach method)
 	// Additional methods are available in initialised instance & within callbacks
@@ -97,7 +97,7 @@
 			this.datastore.filter(filter_value, filter_column);
 		};
 
- 		// Clear all filters currently attached to datastore
+		// Clear all filters currently attached to datastore
 		this.clearFilters = function(){
 			this.datastore.clear_filters();
 		};
@@ -272,12 +272,11 @@
 			if (typeof here.options.ready === "function") here.options.ready(here);
 
 			// Attach any events in options.events via the `on` method
-			if(typeof here.options.events === "object"){
-				for(var evt in here.options.events){
+			if (typeof here.options.events === "object") {
+				for (var evt in here.options.events) {
 					here.on(evt, here.options.events[evt]);
 				}
 			}
-			
 		};
 
 		/**
@@ -383,7 +382,7 @@
 		 * @return {string} screen reader text
 		 */
 		methods.getScreenReaderResultText = function(result, idx){
-			if(result && typeof result.qs_screenreader_text === "string"){
+			if (result && typeof result.qs_screenreader_text === "string") {
 				return (idx + 1) + ". " + result.qs_screenreader_text;
 			}
 
@@ -413,7 +412,7 @@
 			// Event for quickspot end
 			util.triggerEvent(here.target, "quickspot:end");
 			util.triggerEvent(here.target, "quickspot:result");
-		}
+		};
 
 		/**
 		 * Find and display results for a given search term
@@ -423,14 +422,14 @@
 		methods.findResultsFor = function(search){
 
 			// Don't search on blank
-			if (search === ""){
-				if (typeof here.options.no_search_handler === "function"){
+			if (search === "") {
+				if (typeof here.options.no_search_handler === "function") {
 					here.options.no_search_handler(here.dom, here);
 				}
 
-				if(here.options.show_all_on_blank_search){
+				if (here.options.show_all_on_blank_search) {
 					here.showAll();
-				}else{
+				} else {
 					//show nothing if no value
 					here.results = [];
 					methods.hideResults();
@@ -440,7 +439,7 @@
 
 			// Avoid searching if input hasn't changed.
 			// Just reshown what we have
-			if (here.lastValue === search){
+			if (here.lastValue === search) {
 				methods.showResults();
 				util.triggerEvent(here.target, "quickspot:result");
 				return;
@@ -907,7 +906,7 @@
 			if (typeof search === "function"){
 				// sort by a custom function?
 				this.results.sort(search);
-			} else if(search == ""){
+			} else if (search === "") {
 				// Use alphabetical sorting if no search term was provided.
 				this.results.sort(function(a, b){ return (a.__keyvalue > b.__keyvalue) ? 1 : -1; });
 			} else {
@@ -953,17 +952,15 @@
 		 * @return this
 		 */
 		this.filter = function(filter, on_col){
-
 			if (typeof filter === "function"){
 				this.results = this.data_filtered = ds.findByFunction(filter, this.data_filtered);
 			} else {
 				// If searching on column, we need to use the full string (case, symbols and all) since
 				// this data is not pre-processed.
-				if(typeof on_col === "undefined") filter = here.options.string_filter(filter);
+				if (typeof on_col === "undefined") filter = here.options.string_filter(filter);
 
 				this.results = this.data_filtered = ds.find(filter, this.data_filtered, on_col);
 			}
-			console.log(this);
 			return this;
 		};
 
@@ -1213,12 +1210,12 @@
 
 		xmlhttp.onreadystatechange = function(){
 			if (xmlhttp.readyState === 4) {
-				if(xmlhttp.status === 200){
+				if (xmlhttp.status === 200) {
 					// turn JSON in to real JS object & send it to the callback
-					try{
+					try {
 						callback(JSON.parse(xmlhttp.responseText));
-					}catch(e){
-						options.error("0", xmlhttp.responseText); //0 = js parse fail :(
+					} catch (e) {
+						options.error("0", xmlhttp.responseText); // 0 = js parse fail :(
 					}
 				} else {
 					// Call error callback
