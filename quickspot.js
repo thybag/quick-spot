@@ -33,7 +33,7 @@
 		// Public version of attach.
 		this.attach = function(options){
 
-			if(this.target){
+			if (this.target) {
 				console.log("Error: This quickspot instance has already attached.");
 				return;
 			}
@@ -83,11 +83,12 @@
 			return this;
 		};
 
-		// Listener helper
+		// Event listener helper
 		this.on = function(event, callback){
-			if(here.eventsReady){
+			if (here.eventsReady) {
 				util.addListener(here.target, event, callback);
-			}else{
+			} else {
+				// Queue for later
 				eventsQueue.push({"event": event, "callback": callback});
 			}
 			// Make chainable.
@@ -228,7 +229,7 @@
 
 			// Set init to wait for final load.
 			here.on("quickspot:loaded", methods.init);
-			
+
 
 			//find data
 			if (typeof here.options.url !== "undefined"){
@@ -310,11 +311,13 @@
 
 		/**
 		 * Attach any queued events (Both from options.events & any events added before QS had initialized its target)
-		 * 
+		 *
 		 */
 		methods.attachQueuedEvents = function(){
+			var evt;
+
 			// Attach queued events
-			for (var evt in eventsQueue) {
+			for (evt in eventsQueue) {
 				here.on(eventsQueue[evt].event, eventsQueue[evt].callback);
 			}
 			// clean up
@@ -322,7 +325,7 @@
 
 			// Attach any events specified options.events
 			if (typeof here.options.events === "object") {
-				for (var evt in here.options.events) {
+				for (evt in here.options.events) {
 					here.on(evt, here.options.events[evt]);
 				}
 			}
@@ -1302,13 +1305,13 @@
 	};
 
 	// Fire an Event
-	util.triggerEvent = function(obj, event_name, instance){
+	util.triggerEvent = function(obj, event_name, qs_instance){
 		if (document.createEvent) {
 			var evt = document.createEvent("HTMLEvents");
 			evt.initEvent(event_name, true, true);
-			if(typeof instance !== "undefined"){
-				evt.quickspot = instance; // Make quickspot obj accessible via event if possible
-			} 
+			if (typeof qs_instance !== "undefined") {
+				evt.quickspot = qs_instance; // Make quickspot obj accessible via event if possible
+			}
 			obj.dispatchEvent(evt);
 		}
 	};
