@@ -244,23 +244,6 @@
 			}
 		};
 
-		methods.attachQueuedEvents = function(){
-			// Attach queued events
-			for (var evt in eventsQueue) {
-				here.on(eventsQueue[evt].event, eventsQueue[evt].callback);
-			}
-			// clean up
-			eventsQueue = null;
-
-			// Attach any events specified options.events
-			if (typeof here.options.events === "object") {
-				for (var evt in here.options.events) {
-					here.on(evt, here.options.events[evt]);
-				}
-			}
-			
-		}
-
 		/**
 		 * Init - generate additional markup & hook up events on QS load
 		 *
@@ -323,6 +306,26 @@
 
 			// Make quickspot accessible via "target"
 			here.target.quickspot = here;
+		};
+
+		/**
+		 * Attach any queued events (Both from options.events & any events added before QS had initialized its target)
+		 * 
+		 */
+		methods.attachQueuedEvents = function(){
+			// Attach queued events
+			for (var evt in eventsQueue) {
+				here.on(eventsQueue[evt].event, eventsQueue[evt].callback);
+			}
+			// clean up
+			eventsQueue = null;
+
+			// Attach any events specified options.events
+			if (typeof here.options.events === "object") {
+				for (var evt in here.options.events) {
+					here.on(evt, here.options.events[evt]);
+				}
+			}
 		};
 
 		/**
