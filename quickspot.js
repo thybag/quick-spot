@@ -196,7 +196,8 @@
 		 * quickspot:result - result is shown
 		 * quickspot:resultsfound - search completes with results
 		 * quickspot:noresult - search completes with no results
-		 * quickspot:loaded - When quickspot is ready
+		 * quickspot:loaded - When quickspot data is loaded
+		 * quickspot:ready - When quickspot is ready
 		 */
 		methods.attach = function(options){
 
@@ -304,6 +305,8 @@
 
 			// Fire ready callback
 			if (typeof here.options.ready === "function") here.options.ready(here);
+			// Fire ready event
+			util.triggerEvent(here.target, "quickspot:ready", here);
 
 			// Make quickspot accessible via "target"
 			here.target.quickspot = here;
