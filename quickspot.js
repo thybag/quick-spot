@@ -278,6 +278,8 @@
 				}
 			}
 			
+			// Make quickspot accessible via "target"
+			here.target.quickspot = here;
 		};
 
 		/**
@@ -1260,6 +1262,7 @@
 		if (document.createEvent) {
 			var evt = document.createEvent("HTMLEvents");
 			evt.initEvent(event_name, true, true);
+			evt.quickspot = here; // Make quickspot obj accessible via event
 			obj.dispatchEvent(evt);
 		}
 	};
