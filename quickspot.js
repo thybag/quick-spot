@@ -23,13 +23,20 @@
 		this.reader = null; 	// ref to node containing screen reader helper
 		this.lastValue = "";	// last searched value
 		this.resultsVisible = false; // are search results currently visible
+		this.eventsReady = false; // Is QS ready to start attaching events?
 
 		// "here" is kinda a global "this" for quickspot
 		var here = this;
 		var methods = {};
+		var eventsQueue = []; // Queue of events waiting to be added (used for events attached while QS is still initing)
 
 		// Public version of attach.
 		this.attach = function(options){
+
+			if(this.target){
+				console.log("Error: This quickspot instance has already attached.");
+				return;
+			}
 
 			// Don't wait if document is already ready or safe load is turned off
 			if (document.readyState === "complete" || options.safeload === false) {
@@ -54,6 +61,9 @@
 
 			// Blank last value, to force re-query
 			this.lastValue = "";
+
+			// Make chainable.
+			return this;
 		};
 
 		// Force quickspot to show "all" results
@@ -69,37 +79,55 @@
 			// & render it all
 			methods.render_results(here.results);
 			methods.showResults();
+			// Make chainable.
+			return this;
 		};
 
 		// Listener helper
 		this.on = function(event, callback){
-			util.addListener(here.target, event, callback);
+			if(here.eventsReady){
+				util.addListener(here.target, event, callback);
+			}else{
+				eventsQueue.push({"event": event, "callback": callback});
+			}
+			// Make chainable.
+			return this;
 		};
 
 		// show helper
 		this.showResults = function(){
 			methods.showResults();
+			// Make chainable.
+			return this;
 		};
 
 		// hide helper
 		this.hideResults = function(){
 			methods.hideResults();
+			// Make chainable.
+			return this;
 		};
 
 		// Refresh current listing
 		this.refresh = function(){
 			methods.refresh();
+			// Make chainable.
+			return this;
 		};
 
 		// Apply filter to datastore - this will apply to all search values until clearFilters is called.
 		// Multiple filters can be added
 		this.filter = function(filter_value, filter_column){
 			this.datastore.filter(filter_value, filter_column);
+			// Make chainable.
+			return this;
 		};
 
 		// Clear all filters currently attached to datastore
 		this.clearFilters = function(){
 			this.datastore.clear_filters();
+			// Make chainable.
+			return this;
 		};
 
 		/**
@@ -189,6 +217,10 @@
 				return;
 			}
 
+			// Connect any user provided event listeners
+			here.eventsReady = true;
+			methods.attachQueuedEvents();
+
 			// Grab display name
 			if (typeof here.options.display_name === "undefined"){
 				here.options.display_name = here.options.key_value;
@@ -196,6 +228,7 @@
 
 			// Set init to wait for final load.
 			here.on("quickspot:loaded", methods.init);
+			
 
 			//find data
 			if (typeof here.options.url !== "undefined"){
@@ -210,6 +243,23 @@
 				return;
 			}
 		};
+
+		methods.attachQueuedEvents = function(){
+			// Attach queued events
+			for (var evt in eventsQueue) {
+				here.on(eventsQueue[evt].event, eventsQueue[evt].callback);
+			}
+			// clean up
+			eventsQueue = null;
+
+			// Attach any events specified options.events
+			if (typeof here.options.events === "object") {
+				for (var evt in here.options.events) {
+					here.on(evt, here.options.events[evt]);
+				}
+			}
+			
+		}
 
 		/**
 		 * Init - generate additional markup & hook up events on QS load
@@ -271,12 +321,6 @@
 			// Fire ready callback
 			if (typeof here.options.ready === "function") here.options.ready(here);
 
-			// Attach any events in options.events via the `on` method
-			if (typeof here.options.events === "object") {
-				for (var evt in here.options.events) {
-					here.on(evt, here.options.events[evt]);
-				}
-			}
 			// Make quickspot accessible via "target"
 			here.target.quickspot = here;
 		};
@@ -400,7 +444,7 @@
 		 */
 		methods.refresh = function(){
 			// Event for quickspot start (doesn't start if no search is triggered)
-			util.triggerEvent(here.target, "quickspot:start");
+			util.triggerEvent(here.target, "quickspot:start", here);
 
 			// Make selected index 0 again
 			here.selectedIndex = 0;
@@ -412,8 +456,8 @@
 			methods.render_results(here.results);
 
 			// Event for quickspot end
-			util.triggerEvent(here.target, "quickspot:end");
-			util.triggerEvent(here.target, "quickspot:result");
+			util.triggerEvent(here.target, "quickspot:end", here);
+			util.triggerEvent(here.target, "quickspot:result", here);
 		};
 
 		/**
@@ -443,7 +487,7 @@
 			// Just reshown what we have
 			if (here.lastValue === search) {
 				methods.showResults();
-				util.triggerEvent(here.target, "quickspot:result");
+				util.triggerEvent(here.target, "quickspot:result", here);
 				return;
 			}
 
@@ -493,12 +537,12 @@
 			if (key === 38 && here.results.length !== 0){ //up
 				methods.selectIndex(here.selectedIndex - 1);
 				methods.scrollResults("up");
-				util.triggerEvent(here.target, "quickspot:select");
+				util.triggerEvent(here.target, "quickspot:select", here);
 			}
 			if (key === 40 && here.results.length !== 0){ // down
 				methods.selectIndex(here.selectedIndex + 1);
 				methods.scrollResults("down");
-				util.triggerEvent(here.target, "quickspot:select");
+				util.triggerEvent(here.target, "quickspot:select", here);
 			}
 
 			// prevent default action
@@ -586,7 +630,7 @@
 		methods.render_empty_results = function(){
 
 			// no results found
-			util.triggerEvent(here.target, "quickspot:noresults");
+			util.triggerEvent(here.target, "quickspot:noresults", here);
 
 			// See if we have a message to show?
 			var msg = here.options.no_results(here, here.lastValue);
@@ -675,7 +719,7 @@
 			});
 
 			//event when results found
-			util.triggerEvent(here.target, "quickspot:resultsfound");
+			util.triggerEvent(here.target, "quickspot:resultsfound", here);
 
 			// Clear old data from DOM.
 			here.dom.innerHTML = "";
@@ -702,7 +746,7 @@
 			if (typeof result === "undefined") return here.options.no_results_click(here.lastValue, here);
 
 			// Fire activate event
-			util.triggerEvent(here.target, "quickspot:activate");
+			util.triggerEvent(here.target, "quickspot:activate", here);
 
 			// If custom handler was provided
 			if (typeof here.options.click_handler !== "undefined"){
@@ -750,7 +794,7 @@
 			// Set datastore
 			here.setDatastore( datastore.create(data, here.options) );
 			// Fire loaded event
-			util.triggerEvent(here.target, "quickspot:loaded");
+			util.triggerEvent(here.target, "quickspot:loaded", here);
 			// Fire callback if needed
 			if (typeof here.options.loaded !== "undefined") here.options.loaded(here.datastore);
 		};
@@ -759,7 +803,7 @@
 		 * Hide QS results
 		 */
 		methods.hideResults = function(){
-			util.triggerEvent(here.target, "quickspot:hideresults");
+			util.triggerEvent(here.target, "quickspot:hideresults", here);
 
 			if (typeof here.options.hide_results === "function"){
 				here.options.hide_results(here.container, here);
@@ -774,7 +818,7 @@
 		 * Show QS results
 		 */
 		methods.showResults = function(){
-			util.triggerEvent(here.target, "quickspot:showresults");
+			util.triggerEvent(here.target, "quickspot:showresults", here);
 
 			if (typeof here.options.show_results === "function"){
 				here.options.show_results(here.container, here);
@@ -1255,11 +1299,13 @@
 	};
 
 	// Fire an Event
-	util.triggerEvent = function(obj, event_name){
+	util.triggerEvent = function(obj, event_name, instance){
 		if (document.createEvent) {
 			var evt = document.createEvent("HTMLEvents");
 			evt.initEvent(event_name, true, true);
-			evt.quickspot = here; // Make quickspot obj accessible via event
+			if(typeof instance !== "undefined"){
+				evt.quickspot = instance; // Make quickspot obj accessible via event if possible
+			} 
 			obj.dispatchEvent(evt);
 		}
 	};
