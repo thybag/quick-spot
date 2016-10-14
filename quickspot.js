@@ -55,7 +55,7 @@
 			if (typeof store.store !== "undefined") {
 				// Still loading, setup hook and wait
 				if (store.store === null) {
-					store.__loaded = function(ds){ here.setDatstore(ds); };
+					store.__loaded = function(ds){ here.setDatastore(ds); };
 					return;
 				}
 				// Loaded, grab the "real store"
@@ -66,7 +66,7 @@
 			this.datastore = store;
 
 			// Fire callback if needed
-			util.triggerEvent(this.target, "quickspot:loaded", this);
+			if (this.eventsReady) util.triggerEvent(this.target, "quickspot:loaded", this);
 			if (typeof this.options.loaded !== "undefined") this.options.loaded(this.datastore);
 
 			// refresh data
@@ -895,7 +895,6 @@
 		 * @param options
 		 */
 		ds.create = function(data, options){
-
 			// Merge passed in options into options obj
 			for (var i in options){
 				here.options[i] = options[i];
@@ -1280,10 +1279,12 @@
 				if (xmlhttp.status === 200) {
 					// turn JSON in to real JS object & send it to the callback
 					try {
-						callback(JSON.parse(xmlhttp.responseText));
+						var json = JSON.parse(xmlhttp.responseText);
 					} catch (e) {
-						options.error("0", xmlhttp.responseText); // 0 = js parse fail :(
+						return options.error("0", xmlhttp.responseText); // 0 = js parse fail :(
 					}
+
+					callback(json);
 				} else {
 					// Call error callback
 					options.error(xmlhttp.status, xmlhttp.responseText);
@@ -1397,12 +1398,14 @@
 		if (typeof options.url !== "undefined"){
 			var obj = { store: null };
 			util.ajaxGetJSON(options, function(data){
+
 				obj.store = datastore.create(data, options);
+
 				if (typeof options.loaded !== "undefined"){
 					options.loaded(obj.store);
 				}
 				if (typeof obj.__loaded !== "undefined"){
-					obj.__loaded(store);
+					obj.__loaded(obj.store);
 				}
 			});
 			return obj;
