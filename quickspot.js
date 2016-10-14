@@ -24,6 +24,7 @@
 		this.lastValue = "";	// last searched value
 		this.resultsVisible = false; // are search results currently visible
 		this.eventsReady = false; // Is QS ready to start attaching events?
+		this.ready = false;
 
 		// "here" is kinda a global "this" for quickspot
 		var here = this;
@@ -34,7 +35,7 @@
 		this.attach = function(options){
 
 			if (this.target) {
-				console.log("Error: This quickspot instance has already attached.");
+				console.log("[Quickspot] This quickspot instance has already attached.");
 				return;
 			}
 
@@ -51,16 +52,25 @@
 		// Public method to change "datastore" powering quickspot
 		this.setDatastore = function(store){
 
-			// if this isn't the initial boot, hide search results
-			if (this.datastore !== null){
-				methods.hideResults();
+			if (typeof store.store !== "undefined") {
+				// Still loading, setup hook and wait
+				if (store.store === null) {
+					store.__loaded = function(ds){ here.setDatstore(ds); }
+					return; 
+				}
+				// Loaded, grab the "real store"
+				store = store.store;
 			}
 
-			// Set store
+			// Normal datastore? set er up
 			this.datastore = store;
+			
+			// Fire callback if needed
+			util.triggerEvent(this.target, "quickspot:loaded", this);
+			if (typeof this.options.loaded !== "undefined") this.options.loaded(this.datastore);
 
-			// Blank last value, to force re-query
-			this.lastValue = "";
+			// refresh data
+			if(this.ready) this.refresh();
 
 			// Make chainable.
 			return this;
@@ -165,7 +175,7 @@
 		 * @param options.no_results_click - action when "no results" item is clicked
 		 * @param options.no_search_handler - action when no search is entered
 		 * @param options.string_filter - parse string for quickspot searching (Default will make string lower case, and remove punctuation characters)
-		 * @param options.loaded - callback fired when data store has been loaded
+		 * @param options.loaded - callback fired when a data store has been loaded
 		 * @param options.ready - callback fired when quick-spot up & running
 		 * @param options.data_pre_parse - callback provided with raw data object & options - can be used to rearrange data to work with quick-spot (if needed)
 		 * @param options.parse_results - Manipulate result array before render.
@@ -196,7 +206,7 @@
 		 * quickspot:result - result is shown
 		 * quickspot:resultsfound - search completes with results
 		 * quickspot:noresult - search completes with no results
-		 * quickspot:loaded - When quickspot data is loaded
+		 * quickspot:loaded - When a quickspot datastore is loaded
 		 * quickspot:ready - When quickspot is ready
 		 */
 		methods.attach = function(options){
@@ -208,14 +218,14 @@
 
 			// Check we have a target!
 			if (!options.target){
-				console.log("Error: Target not specified");
+				console.log("[Quickspot] Target not specified");
 				return;
 			}
 
 			// Get target
 			here.target = methods.get_option_contents_as_node(here.options.target, false);
 			if (!here.target){
-				console.log("Error: Target ID could not be found");
+				console.log("[Quickspot] Target ID could not be found");
 				return;
 			}
 
@@ -229,10 +239,9 @@
 			}
 
 			// Set init to wait for final load.
-			here.on("quickspot:loaded", methods.init);
+			here.on("quickspot:init", methods.init);
 
-
-			//find data
+			// Find data
 			if (typeof here.options.url !== "undefined"){
 				//Load data via ajax
 				util.ajaxGetJSON(here.options, methods.initialise_data);
@@ -241,7 +250,7 @@
 				methods.initialise_data(options.data);
 			} else {
 				//Warn user if none is provided
-				console.log("Error: No datasource provided.");
+				console.log("[Quickspot] No datasource provided.");
 				return;
 			}
 		};
@@ -307,6 +316,7 @@
 			if (typeof here.options.ready === "function") here.options.ready(here);
 			// Fire ready event
 			util.triggerEvent(here.target, "quickspot:ready", here);
+			here.ready = true;
 
 			// Make quickspot accessible via "target"
 			here.target.quickspot = here;
@@ -802,10 +812,9 @@
 		methods.initialise_data = function(data){
 			// Set datastore
 			here.setDatastore( datastore.create(data, here.options) );
+
 			// Fire loaded event
-			util.triggerEvent(here.target, "quickspot:loaded", here);
-			// Fire callback if needed
-			if (typeof here.options.loaded !== "undefined") here.options.loaded(here.datastore);
+			util.triggerEvent(here.target, "quickspot:init", here);
 		};
 
 		/**
@@ -1260,8 +1269,11 @@
 		try {
 			xmlhttp = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
 		} catch (e) {
-			console.log("[Quick-spot] Unable to create XMLHttpRequest. Can not load data.");
+			console.log("[Quickspot] Unable to create XMLHttpRequest. Can not load data.");
 		}
+
+		// If no erro handler is provided
+		if(typeof options.error === "undefined") options.error = function(e,msg){ console.log("[Quickspot] AJAX request failed with error " + http_status); };
 
 		xmlhttp.onreadystatechange = function(){
 			if (xmlhttp.readyState === 4) {
@@ -1383,11 +1395,14 @@
 	QuickspotPublic.datastore = function(options){
 		// If url is provided
 		if (typeof options.url !== "undefined"){
-			var obj = {};
+			var obj = { store: null };
 			util.ajaxGetJSON(options, function(data){
 				obj.store = datastore.create(data, options);
 				if (typeof options.loaded !== "undefined"){
 					options.loaded(obj.store);
+				}
+				if(typeof obj.__loaded !== "undefined"){
+					obj.__loaded(store);
 				}
 			});
 			return obj;
@@ -1395,7 +1410,13 @@
 
 		// If a data source is provided directly
 		if (typeof options.data !== "undefined"){
-			return {"store": datastore.create(options.data, options) };
+			var store = datastore.create(options.data, options);
+
+			if (typeof options.loaded !== "undefined"){
+				options.loaded(obj.store);
+			}
+
+			return {"store":  store};
 		}
 
 		// if nothing is provided
