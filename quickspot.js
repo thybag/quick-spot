@@ -55,8 +55,8 @@
 			if (typeof store.store !== "undefined") {
 				// Still loading, setup hook and wait
 				if (store.store === null) {
-					store.__loaded = function(ds){ here.setDatstore(ds); }
-					return; 
+					store.__loaded = function(ds){ here.setDatstore(ds); };
+					return;
 				}
 				// Loaded, grab the "real store"
 				store = store.store;
@@ -64,13 +64,13 @@
 
 			// Normal datastore? set er up
 			this.datastore = store;
-			
+
 			// Fire callback if needed
 			util.triggerEvent(this.target, "quickspot:loaded", this);
 			if (typeof this.options.loaded !== "undefined") this.options.loaded(this.datastore);
 
 			// refresh data
-			if(this.ready) this.refresh();
+			if (this.ready) this.refresh();
 
 			// Make chainable.
 			return this;
@@ -1273,7 +1273,7 @@
 		}
 
 		// If no erro handler is provided
-		if(typeof options.error === "undefined") options.error = function(e,msg){ console.log("[Quickspot] AJAX request failed with error " + http_status); };
+		if (typeof options.error === "undefined") options.error = function(http_status){ console.log("[Quickspot] AJAX request failed with error " + http_status); };
 
 		xmlhttp.onreadystatechange = function(){
 			if (xmlhttp.readyState === 4) {
@@ -1401,7 +1401,7 @@
 				if (typeof options.loaded !== "undefined"){
 					options.loaded(obj.store);
 				}
-				if(typeof obj.__loaded !== "undefined"){
+				if (typeof obj.__loaded !== "undefined"){
 					obj.__loaded(store);
 				}
 			});

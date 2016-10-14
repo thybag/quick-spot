@@ -63,7 +63,7 @@ In addition you can also extend quickspots base functionality significantly thro
 * `options.screenreader_result_text(item_data result_idx, quickspot_instance)` - callback to override how text describing a result for screen-readers is generated
 * `options.hide_results(results_container, quickspot_instance)` - Callback to override method that hides results container
 * `options.show_results(results_container, quickspot_instance)` - Callback to override method that shows results container
-* `options.loaded(datastore)` - Callback is fired when a data store has been loaded
+* `options.loaded(datastore)` - Callback is fired each time a data store has been loaded
 * `options.ready(quickspot_instance)` - Callback fired when quick-spot is fully up & running
 * `options.error(http_status, http_text)` - Callback fired on AJAX failure
 * `options.results_header` - Header for results container (can be Node/ID/raw html or callback returning one of the previous)
@@ -80,6 +80,9 @@ Along with the standard events, quickspot will also fire the following additiona
 * `quickspot:result` - Fired whenever a quickspot displays some results
 * `quickspot:noresults` - Fired whenever a quickspot search finds no results.
 * `quickspot:resultsfound` - Fired whenever a quickspot search returns results.
+* `quickspot:ready` - Fired when quickspot is fully loaded
+* `quickspot:loaded` - Fired whenever a new datastore is attached & ready
+* `quickspot:init` - Fired the first time quickspot loads its datastore
 
 A few additional options can be accessed via setting certain attributes on the search data object. These can either be set within callbacks, or as part of the initial data set.
 
@@ -98,4 +101,10 @@ Finally, quickspot also exposes a number of methods on the created instance.
  * `qs.setDatastore(newDatastore)` - Set a new datastore. Datastores can be created via `quickspot.datastore({url: "bla"});`
  * `qs.refresh()` - Refresh current search results (use when updating a datastore)
  * `qs.datastore` - provides access to the datastore object itself.
- 
+
+Additional data stores can be created using:
+
+ 	quickspot.datastore({url: "url"});
+
+This will return a quickspot datastore container, within it a datastore will be created as `store` once it has been initialized. Use `options.loaded(ds)` to add a callback to listen for this. 
+The quickspot datastore container can also be added directly to the `setDatastore` method on quickspot. Options are the same as for quickspot.
