@@ -454,7 +454,7 @@
 				return (idx + 1) + ". " + result.qs_screenreader_text;
 			}
 
-			return (idx + 1) + ". Go to " + result[here.options.display_name] + "?";
+			return (idx + 1) + ". Go to " + util.extractValue(result, here.options.display_name) + "?";
 		};
 
 		/**
@@ -707,7 +707,7 @@
 				if (typeof here.options.display_handler === "function"){
 					result_str = here.options.display_handler(result, here);
 				} else {
-					result_str = result[here.options.display_name];
+					result_str = util.extractValue(result, here.options.display_name);
 				}
 
 				// Automatically highlight matching portion of text
@@ -780,7 +780,7 @@
 					window.location.href = result.url;
 				} else {
 					// else assume we are just a typeahead?
-					here.target.value = result[here.options.display_name];
+					here.target.value = util.extractValue(result, here.options.display_name);
 					methods.hideResults();
 				}
 			}
@@ -1089,23 +1089,48 @@
 				return item;
 			}
 
-			if (attrs){
-				// grab only the attributes we want to search on
-				for (c = 0; c < attrs.length; c++){
-					tmp += " " + item[attrs[c]];
-				}
-			} else {
-				// just grab all the attributes
-				for (c in item){
-					tmp += " " + item[c];
-				}
-			}
+			// just grab all the attributes
+			tmp = ds.findSearchValues(item, attrs)
+
 			// lower case everything
 			item.__searchvalues = here.options.string_filter(tmp);
-			item.__keyvalue = here.options.string_filter(item[here.options.key_value]);
+			item.__keyvalue = here.options.string_filter(util.extractValue(item, here.options.key_value));
 
 			return item;
 		};
+
+		/**
+		 * Find values in object to search (supports nesting)
+		 *
+		 * @param item item object
+		 * @param search_fields array of valid fields to search on
+		 */
+
+		ds.findSearchValues = function(item, search_fields) {
+			var c, tmp = '';
+
+			// if we only want to search some
+			if (search_fields) {
+				for (c in search_fields) {
+					tmp += " " + util.extractValue(item, search_fields[c]);
+				}
+				return tmp;
+			}
+			
+			// Else extract all
+			for (c in item){
+				if (item.hasOwnProperty(c)) {
+					if(typeof item[c] === 'object'){
+						tmp += " " + ds.findSearchValues(item[c]);
+					}
+					if(typeof item[c] === 'string' || typeof item[c] === 'number'){
+						tmp += " " + item[c];
+					}
+				}
+			}
+
+			return tmp;
+		}
 
 		/**
 		 * find
@@ -1365,6 +1390,27 @@
 			event.returnValue = false;
 		}
 	};
+
+	// Handle dot notation of nested
+	util.extractValue = function(item, param) {
+		var tmp, parts;
+
+		if(!param.indexOf('.')) {
+			return item[param];	
+		}
+
+		parts = param.split('.');
+
+		tmp = item;
+		for(var c=0; c < parts.length; c++) {
+			tmp = tmp[parts[c]];	
+		}
+
+		if(typeof tmp === 'string' || typeof tmp === 'number'){
+			return tmp;
+		}
+	}
+
 
 	// High speed occurrences function (amount of matches within a string)
 	// borrowed from stack overflow (benchmarked to be significantly faster than regexp)
