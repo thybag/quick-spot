@@ -930,8 +930,8 @@
 
 			// Convert object to array if found
 			// keys will be thrown away
-			if (typeof data === "object"){
-				var tmp = [];
+			if (!data instanceof Array){
+				var tmp = [], i;
 				for (i in data){
 					if (data.hasOwnProperty(i)){
 						tmp.push(data[i]);
