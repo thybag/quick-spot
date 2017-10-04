@@ -933,7 +933,7 @@
 			if (!data instanceof Array){
 				var tmp = [], i;
 				for (i in data){
-					if (data.hasOwnProperty(i)){
+					if (data.hasOwnProperty(i) && typeof data[i] === 'object'){
 						tmp.push(data[i]);
 					}
 				}
@@ -1421,7 +1421,7 @@
 
 		tmp = item;
 		for(var c=0; c < parts.length; c++) {
-			tmp = tmp[parts[c]];	
+			tmp = tmp[parts[c]];
 		}
 
 		if(typeof tmp === 'string' || typeof tmp === 'number'){
@@ -1483,7 +1483,7 @@
 			var store = datastore.create(options.data, options);
 
 			if (typeof options.loaded !== "undefined") {
-				options.loaded(obj.store);
+				options.loaded(store);
 			}
 
 			return {"store":  store};
