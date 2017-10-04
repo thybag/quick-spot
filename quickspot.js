@@ -891,7 +891,7 @@
 		 * Create
 		 *
 		 * Create a new datastore instance. The datastore will use the data and options to generate
-		 * an internal preproccessed representation of the data in order to allow quicker searching
+		 * an internal pre-proccessed representation of the data in order to allow quicker searching
 		 * and filtering
 		 *
 		 * @param data raw JSON
@@ -908,9 +908,24 @@
 				here.options.key_value = "name";
 			}
 
+			here.fill(data);
+		};
+
+		/**
+		 * Empty datastore of all values
+		 */
+		this.empty = function() {
+			this.data_filtered = this.data = this.results = [];
+			return this;
+		}
+
+		/**
+		 * import a new data set
+		 */
+		this.fill = function(data) {
 			// Pre-parse data (re arrange structure to allow searching if needed)
-			if (typeof options.data_pre_parse === "function"){
-				data = options.data_pre_parse(data, options);
+			if (typeof here.options.data_pre_parse === "function"){
+				data = here.options.data_pre_parse(data, here.options);
 			}
 
 			// Convert object to array if found
@@ -935,7 +950,10 @@
 			}
 			// Store in memory
 			here.data_filtered = here.data = data;
-		};
+			here.results = [];
+
+			return this;
+		}
 
 		/**
 		 * find
