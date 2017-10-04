@@ -1483,7 +1483,7 @@
 			var store = datastore.create(options.data, options);
 
 			if (typeof options.loaded !== "undefined") {
-				options.loaded(obj.store);
+				options.loaded(store);
 			}
 
 			return {"store":  store};
