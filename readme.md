@@ -34,9 +34,9 @@ If a JSON object has a "url" attribute quick-spot will attempt to redirect to th
 
 QuickSpot implements a number of advanced methods which can be used to further customise how quick-spot functions.
 
-* `option.key_value` - Use this to specify the name of the primary attribute in the objects. For example name/title. Results matching this value will be ranked higher. By default quickspot assumes this attribute is called "name".
-* `option.display_name` - If you would like search results to show a value other than what is contained in key_value (normally "name") set this attribute here.
-* `options.search_on` - Array of attributes in the JSON data set to search on (Quickspot will search on all attributes in an object if this is not provided)
+* `option.key_value` - Use this to specify the name of the primary attribute in the objects. For example name/title. Results matching this value will be ranked higher. By default quickspot assumes this attribute is called "name". For more complex objects dot notation can be used to reference a nested value, ie. `attributes.name`.
+* `option.display_name` - If you would like search results to show a value other than what is contained in key_value (normally "name") set this attribute here. (dot notation is supported)
+* `options.search_on` - Array of attributes in the JSON data set to search on (Quickspot will search on all attributes in an object if this is not provided). (dot notation is supported)
 * `disable_occurrence_weighting` - If set to true, multiple occurrences of the search string in a result, will no longer increase its ranking in the results.
 * `options.safeload` - If set to false, Quickspot will attempt to attach instantly, rather than waiting for document load event to fire.
 * `options.hide_on_blur` - Hide results listing on blur (true by default)
@@ -108,3 +108,16 @@ Additional data stores can be created using:
 
 This will return a quickspot datastore container, within it a datastore will be created as `store` once it has been initialized. Use `options.loaded(ds)` to add a callback to listen for this. 
 The quickspot datastore container can also be added directly to the `setDatastore` method on quickspot. Options are the same as for quickspot.
+
+The datastore itself offers to following methods.
+
+ * `ds.fill(data)` - replace datastore content with new data
+ * `ds.empty()` - clear all data from datastore
+ * `ds.add(item)` - add item to current datastore data set
+ * `ds.find(term, column)` - limit results to those containing a given search term. This can be limited to a single column if provided
+ * `ds.sort_results_by(method_or_term)` - sort filtered results by method or by closest match to provided term
+ * `ds.search(term)` - filter & sort results by given term
+ * `ds.all(filtered, method_or_term)` - return all data (filtered = whether to include filtered data in results). Sort term or method can also be provided.
+ * `ds.filter(filter, column)` - Filter searchable data set. filter can be method of value to filter on. Col can also optionally be provided.
+ * `ds.clear_filters()` - Removes all filters from searchable data set.
+ * `ds.get()` - Get current results.
