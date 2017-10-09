@@ -917,14 +917,14 @@
 		this.empty = function() {
 			this.data_filtered = this.data = this.results = [];
 			return this;
-		}
+		};
 
 		/**
 		 * import a new data set
 		 */
 		this.fill = function(data) {
 			// Pre-parse data (re arrange structure to allow searching if needed)
-			if (typeof here.options.data_pre_parse === "function"){
+			if (typeof here.options.data_pre_parse === "function") {
 				data = here.options.data_pre_parse(data, here.options);
 			}
 
@@ -933,7 +933,7 @@
 			if (!data instanceof Array){
 				var tmp = [], i;
 				for (i in data){
-					if (data.hasOwnProperty(i) && typeof data[i] === 'object'){
+					if (data.hasOwnProperty(i) && typeof data[i] === "object") {
 						tmp.push(data[i]);
 					}
 				}
@@ -944,7 +944,7 @@
 
 			// Loop through searchable items, adding all values that will need to be searched upon in to a
 			// string stored as __searchvalues. Either add everything or just what the user specifies.
-			for (i = 0; i < data.length; i++){
+			for (i = 0; i < data.length; i++) {
 				// If search_on exists use th as attributes list, else just use all of them
 				data[i] = ds.pre_process(data[i], attrs);
 			}
@@ -953,7 +953,7 @@
 			here.results = [];
 
 			return this;
-		}
+		};
 
 		/**
 		 * find
@@ -966,9 +966,9 @@
 		this.find = function(search, col) {
 			search = here.options.string_filter(search);
 
-			if (here.options.allow_partial_matches === true){
+			if (here.options.allow_partial_matches === true) {
 				here.results = this.data_filtered;
-				search.split(" ").forEach(function(term){
+				search.split(" ").forEach(function(term) {
 					here.results = ds.find(term, here.results, col);
 				});
 			} else {
@@ -1108,7 +1108,7 @@
 			}
 
 			// just grab all the attributes
-			tmp = ds.findSearchValues(item, attrs)
+			tmp = ds.findSearchValues(item, attrs);
 
 			// lower case everything
 			item.__searchvalues = here.options.string_filter(tmp);
@@ -1125,7 +1125,7 @@
 		 */
 
 		ds.findSearchValues = function(item, search_fields) {
-			var c, tmp = '';
+			var c, tmp = "";
 
 			// if we only want to search some
 			if (search_fields) {
@@ -1134,21 +1134,21 @@
 				}
 				return tmp;
 			}
-			
+
 			// Else extract all
 			for (c in item){
 				if (item.hasOwnProperty(c)) {
-					if(typeof item[c] === 'object'){
+					if (typeof item[c] === "object") {
 						tmp += " " + ds.findSearchValues(item[c]);
 					}
-					if(typeof item[c] === 'string' || typeof item[c] === 'number'){
+					if (typeof item[c] === "string" || typeof item[c] === "number") {
 						tmp += " " + item[c];
 					}
 				}
 			}
 
 			return tmp;
-		}
+		};
 
 		/**
 		 * find
@@ -1167,7 +1167,7 @@
 			if (typeof use_column === "undefined") use_column = "__searchvalues";
 
 			// for each possible item
-			for (i = 0; i < dataset.length; i++){
+			for (i = 0; i < dataset.length; i++) {
 				// get item
 				itm = dataset[i];
 				// do really quick string search
@@ -1192,7 +1192,7 @@
 		 */
 		ds.findByFunction = function(func, dataset) {
 			var i = 0, itm, matches = [];
-			for (i = 0; i < dataset.length; i++){
+			for (i = 0; i < dataset.length; i++) {
 				itm = dataset[i];
 				if (func(itm)){
 					matches.push(itm);
@@ -1413,22 +1413,21 @@
 	util.extractValue = function(item, param) {
 		var tmp, parts;
 
-		if(!param.indexOf('.')) {
-			return item[param];	
+		if (!param.indexOf(".")) {
+			return item[param];
 		}
 
-		parts = param.split('.');
+		parts = param.split(".");
 
 		tmp = item;
-		for(var c=0; c < parts.length; c++) {
+		for (var c = 0; c < parts.length; c++) {
 			tmp = tmp[parts[c]];
 		}
 
-		if(typeof tmp === 'string' || typeof tmp === 'number'){
+		if (typeof tmp === "string" || typeof tmp === "number") {
 			return tmp;
 		}
-	}
-
+	};
 
 	// High speed occurrences function (amount of matches within a string)
 	// borrowed from stack overflow (benchmarked to be significantly faster than regexp)
