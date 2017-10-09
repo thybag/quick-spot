@@ -109,15 +109,15 @@ Additional data stores can be created using:
 This will return a quickspot datastore container, within it a datastore will be created as `store` once it has been initialized. Use `options.loaded(ds)` to add a callback to listen for this. 
 The quickspot datastore container can also be added directly to the `setDatastore` method on quickspot. Options are the same as for quickspot.
 
-The datastore itself offers to following methods.
+The datastore object itself offers the following methods.
 
- * `ds.fill(data)` - replace datastore content with new data
- * `ds.empty()` - clear all data from datastore
- * `ds.add(item)` - add item to current datastore data set
- * `ds.find(term, column)` - limit results to those containing a given search term. This can be limited to a single column if provided
- * `ds.sort_results_by(method_or_term)` - sort filtered results by method or by closest match to provided term
- * `ds.search(term)` - filter & sort results by given term
- * `ds.all(filtered, method_or_term)` - return all data (filtered = whether to include filtered data in results). Sort term or method can also be provided.
+ * `ds.fill(data)` - Replace datastore content with new data.
+ * `ds.empty()` - Clear all data from datastore.
+ * `ds.add(item)` - Add item to current datastore data set.
+ * `ds.find(term, column)` - Limit results to those containing a given search term. This can be limited to a single column if provided.
+ * `ds.sort_results_by(method_or_term)` - Sort filtered results by method or by closest match to provided term.
+ * `ds.search(term)` - Filter & sort results by given term
+ * `ds.all(filtered, method_or_term)` - Return all data (filtered = whether to include filtered data in results). Sort term or method can also be provided.
  * `ds.filter(filter, column)` - Filter searchable data set. filter can be method of value to filter on. Col can also optionally be provided.
  * `ds.clear_filters()` - Removes all filters from searchable data set.
  * `ds.get()` - Get current results.
