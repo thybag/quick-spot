@@ -454,7 +454,7 @@
 				return (idx + 1) + ". " + result.qs_screenreader_text;
 			}
 
-			return (idx + 1) + ". Go to " + result[here.options.display_name] + "?";
+			return (idx + 1) + ". Go to " + util.extractValue(result, here.options.display_name) + "?";
 		};
 
 		/**
@@ -707,7 +707,7 @@
 				if (typeof here.options.display_handler === "function"){
 					result_str = here.options.display_handler(result, here);
 				} else {
-					result_str = result[here.options.display_name];
+					result_str = util.extractValue(result, here.options.display_name);
 				}
 
 				// Automatically highlight matching portion of text
@@ -780,7 +780,7 @@
 					window.location.href = result.url;
 				} else {
 					// else assume we are just a typeahead?
-					here.target.value = result[here.options.display_name];
+					here.target.value = util.extractValue(result, here.options.display_name);
 					methods.hideResults();
 				}
 			}
@@ -891,7 +891,7 @@
 		 * Create
 		 *
 		 * Create a new datastore instance. The datastore will use the data and options to generate
-		 * an internal preproccessed representation of the data in order to allow quicker searching
+		 * an internal pre-proccessed representation of the data in order to allow quicker searching
 		 * and filtering
 		 *
 		 * @param data raw JSON
@@ -908,17 +908,32 @@
 				here.options.key_value = "name";
 			}
 
+			here.fill(data);
+		};
+
+		/**
+		 * Empty datastore of all values
+		 */
+		this.empty = function() {
+			this.data_filtered = this.data = this.results = [];
+			return this;
+		};
+
+		/**
+		 * import a new data set
+		 */
+		this.fill = function(data) {
 			// Pre-parse data (re arrange structure to allow searching if needed)
-			if (typeof options.data_pre_parse === "function"){
-				data = options.data_pre_parse(data, options);
+			if (typeof here.options.data_pre_parse === "function") {
+				data = here.options.data_pre_parse(data, here.options);
 			}
 
 			// Convert object to array if found
 			// keys will be thrown away
-			if (typeof data === "object"){
-				var tmp = [];
+			if (!data instanceof Array){
+				var tmp = [], i;
 				for (i in data){
-					if (data.hasOwnProperty(i)){
+					if (data.hasOwnProperty(i) && typeof data[i] === "object") {
 						tmp.push(data[i]);
 					}
 				}
@@ -929,12 +944,15 @@
 
 			// Loop through searchable items, adding all values that will need to be searched upon in to a
 			// string stored as __searchvalues. Either add everything or just what the user specifies.
-			for (i = 0; i < data.length; i++){
+			for (i = 0; i < data.length; i++) {
 				// If search_on exists use th as attributes list, else just use all of them
 				data[i] = ds.pre_process(data[i], attrs);
 			}
 			// Store in memory
 			here.data_filtered = here.data = data;
+			here.results = [];
+
+			return this;
 		};
 
 		/**
@@ -948,9 +966,9 @@
 		this.find = function(search, col) {
 			search = here.options.string_filter(search);
 
-			if (here.options.allow_partial_matches === true){
+			if (here.options.allow_partial_matches === true) {
 				here.results = this.data_filtered;
-				search.split(" ").forEach(function(term){
+				search.split(" ").forEach(function(term) {
 					here.results = ds.find(term, here.results, col);
 				});
 			} else {
@@ -1089,22 +1107,47 @@
 				return item;
 			}
 
-			if (attrs){
-				// grab only the attributes we want to search on
-				for (c = 0; c < attrs.length; c++){
-					tmp += " " + item[attrs[c]];
-				}
-			} else {
-				// just grab all the attributes
-				for (c in item){
-					tmp += " " + item[c];
-				}
-			}
+			// just grab all the attributes
+			tmp = ds.findSearchValues(item, attrs);
+
 			// lower case everything
 			item.__searchvalues = here.options.string_filter(tmp);
-			item.__keyvalue = here.options.string_filter(item[here.options.key_value]);
+			item.__keyvalue = here.options.string_filter(util.extractValue(item, here.options.key_value));
 
 			return item;
+		};
+
+		/**
+		 * Find values in object to search (supports nesting)
+		 *
+		 * @param item item object
+		 * @param search_fields array of valid fields to search on
+		 * @return array of values to search on
+		 */
+		ds.findSearchValues = function(item, search_fields) {
+			var c, tmp = "";
+
+			// if we only want to search some
+			if (search_fields) {
+				for (c in search_fields) {
+					tmp += " " + util.extractValue(item, search_fields[c]);
+				}
+				return tmp;
+			}
+
+			// Else extract all
+			for (c in item){
+				if (item.hasOwnProperty(c)) {
+					if (typeof item[c] === "object") {
+						tmp += " " + ds.findSearchValues(item[c]);
+					}
+					if (typeof item[c] === "string" || typeof item[c] === "number") {
+						tmp += " " + item[c];
+					}
+				}
+			}
+
+			return tmp;
 		};
 
 		/**
@@ -1124,7 +1167,7 @@
 			if (typeof use_column === "undefined") use_column = "__searchvalues";
 
 			// for each possible item
-			for (i = 0; i < dataset.length; i++){
+			for (i = 0; i < dataset.length; i++) {
 				// get item
 				itm = dataset[i];
 				// do really quick string search
@@ -1149,7 +1192,7 @@
 		 */
 		ds.findByFunction = function(func, dataset) {
 			var i = 0, itm, matches = [];
-			for (i = 0; i < dataset.length; i++){
+			for (i = 0; i < dataset.length; i++) {
 				itm = dataset[i];
 				if (func(itm)){
 					matches.push(itm);
@@ -1366,6 +1409,26 @@
 		}
 	};
 
+	// Handle dot notation of nested values
+	util.extractValue = function(item, param) {
+		var tmp, parts;
+
+		if (!param.indexOf(".")) {
+			return item[param];
+		}
+
+		parts = param.split(".");
+
+		tmp = item;
+		for (var c = 0; c < parts.length; c++) {
+			tmp = tmp[parts[c]];
+		}
+
+		if (typeof tmp === "string" || typeof tmp === "number") {
+			return tmp;
+		}
+	};
+
 	// High speed occurrences function (amount of matches within a string)
 	// borrowed from stack overflow (benchmarked to be significantly faster than regexp)
 	// http://stackoverflow.com/questions/4009756/how-to-count-string-occurrence-in-string
@@ -1419,7 +1482,7 @@
 			var store = datastore.create(options.data, options);
 
 			if (typeof options.loaded !== "undefined") {
-				options.loaded(obj.store);
+				options.loaded(store);
 			}
 
 			return {"store":  store};
