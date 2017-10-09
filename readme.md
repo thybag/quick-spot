@@ -101,6 +101,7 @@ Finally, quickspot also exposes a number of methods on the created instance.
  * `qs.setDatastore(newDatastore)` - Set a new datastore. Datastores can be created via `quickspot.datastore({url: "bla"});`
  * `qs.refresh()` - Refresh current search results (use when updating a datastore)
  * `qs.datastore` - provides access to the datastore object itself.
+ * `qs.showAll(unfiltered, custom_sort, prevent_autofocus)` - Display all possible values in results. (unfiltered = ignore any applied filters, custom_sort = custom sort method if wanted, prevent_autofocus will prevent search box being auto focused when this is called)
 
 Additional data stores can be created using:
 
@@ -121,3 +122,7 @@ The datastore object itself offers the following methods.
  * `ds.filter(filter, column)` - Filter searchable data set. filter can be method of value to filter on. Col can also optionally be provided.
  * `ds.clear_filters()` - Removes all filters from searchable data set.
  * `ds.get()` - Get current results.
+
+ ## Troubleshooting
+
+ **Circular references** If you are using quickspot with a data store that includes circular reference (ie. an object that references itself), you will need to ensure you are setting `search_on` with specific columns. Currently quickspot has no mechanism to avoid circular reference and will get stuck in an infinite loop when attempting to parse the values from these unless the `search_on` columns are set.
