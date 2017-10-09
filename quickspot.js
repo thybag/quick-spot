@@ -1122,8 +1122,8 @@
 		 *
 		 * @param item item object
 		 * @param search_fields array of valid fields to search on
+		 * @return array of values to search on
 		 */
-
 		ds.findSearchValues = function(item, search_fields) {
 			var c, tmp = "";
 
@@ -1409,7 +1409,7 @@
 		}
 	};
 
-	// Handle dot notation of nested
+	// Handle dot notation of nested values
 	util.extractValue = function(item, param) {
 		var tmp, parts;
 
