@@ -1426,6 +1426,8 @@
 
 		if (typeof tmp === "string" || typeof tmp === "number") {
 			return tmp;
+		} else {
+			return "";
 		}
 	};
 
