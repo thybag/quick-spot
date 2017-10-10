@@ -933,7 +933,7 @@
 			if (!data instanceof Array){
 				var tmp = [], i;
 				for (i in data){
-					if (data.hasOwnProperty(i) && typeof data[i] === "object") {
+					if (data.hasOwnProperty(i) && typeof data[i] === "object" && typeof data[i] !== null) {
 						tmp.push(data[i]);
 					}
 				}
@@ -1420,7 +1420,7 @@
 		parts = param.split(".");
 
 		tmp = item;
-		for (var c = 0; c < parts.length; c++) {
+		for (var c = 0; c < parts.length && typeof tmp === 'object' && tmp !== null; c++) {
 			tmp = tmp[parts[c]];
 		}
 
