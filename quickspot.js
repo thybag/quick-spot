@@ -1130,7 +1130,7 @@
 			// if we only want to search some
 			if (search_fields) {
 				for (c in search_fields) {
-					tmp += " " + util.extractValue(item, search_fields[c]);
+					tmp += " " + (util.extractValue(item, search_fields[c])||"");
 				}
 				return tmp;
 			}
