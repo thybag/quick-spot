@@ -1,6 +1,6 @@
 {
   "name": "thybag/quick-spot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "quickspot.js",
   "description": "Quickspot is a fast, flexible JSON powered in-memory search. ",
   "license": "MIT",
