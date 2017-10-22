@@ -1276,7 +1276,11 @@
 		 * @return simplified string
 		 */
 		ds.simplfy_strings = function(str) {
-			// all lower ase
+			// cast to string if necessary
+			if (typeof str !== 'string') {
+				str = String(str);
+			}
+			// all lower case
 			str = str.toLowerCase();
 			// & -> and
 			str = str.replace(/\&/g, "and");
