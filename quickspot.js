@@ -1277,9 +1277,9 @@
 		 */
 		ds.simplfy_strings = function(str) {
 			// cast to string if necessary
-			if (typeof str !== 'string') {
+			if (typeof str !== "string") {
 				// Don't stringify non-primitives
-				str = util.isPrimitive(str) ? String(str) : '';
+				str = util.isPrimitive(str) ? String(str) : "";
 			}
 			// all lower case
 			str = str.toLowerCase();
@@ -1306,10 +1306,10 @@
 	};
 
 	/**
- 	 * Util methods.
- 	 * These are based on code from https://github.com/thybag/base.js/
- 	 * I am using these to avoid the need to have dependencies on any external frameworks (example:jQuery).
- 	 */
+	 * Util methods.
+	 * These are based on code from https://github.com/thybag/base.js/
+	 * I am using these to avoid the need to have dependencies on any external frameworks (example:jQuery).
+	 */
 	var util = {};
 
 	// Perform an AJAX get of a provided url, and return the result to the specified callback.
@@ -1435,19 +1435,19 @@
 			return "";
 		}
 	};
-	
+
 	// Check whether a value is a defined primitive
 	util.isPrimitive = function(val) {
-	    if (val === null) {
-		return false;
-	    }
-	    switch(typeof val) {
-		case 'object':
-		case 'undefined':
-		case 'function':
-		    return false;
-	    }
-	    return true;
+		if (val === null) {
+			return false;
+		}
+		switch (typeof val) {
+			case "object":
+			case "undefined":
+			case "function":
+				return false;
+		}
+		return true;
 	};
 
 	// High speed occurrences function (amount of matches within a string)
