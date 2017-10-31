@@ -908,6 +908,13 @@
 				here.options.key_value = "name";
 			}
 
+			// Use a standard alphabetical string sort if one isn't provided
+			// Accept `false` to remove the default sort entirely
+			if (typeof here.options.default_sort !== "function" &&
+				here.options.default_sort !== false) {
+				here.options.default_sort = ds.default_sort;
+			}
+
 			here.fill(data);
 		};
 
@@ -949,7 +956,7 @@
 				data[i] = ds.pre_process(data[i], attrs);
 			}
 			// Store in memory
-			here.data_filtered = here.data = data;
+			here.data_filtered = here.data = util.shallowCopy(data);
 			here.results = [];
 
 			return this;
@@ -967,7 +974,7 @@
 			search = here.options.string_filter(search);
 
 			if (here.options.allow_partial_matches === true) {
-				here.results = this.data_filtered;
+				here.results = util.shallowCopy(this.data_filtered);
 				search.split(" ").forEach(function(term) {
 					here.results = ds.find(term, here.results, col);
 				});
@@ -990,9 +997,16 @@
 			if (typeof search === "function") {
 				// sort by a custom function?
 				this.results.sort(search);
+			} else if (search === false || here.options.default_sort === false && search === "") {
+				// Don't sort the results at all
+				return this;
 			} else if (search === "") {
 				// Use alphabetical sorting if no search term was provided.
-				this.results.sort(function(a, b){ return (a.__keyvalue > b.__keyvalue) ? 1 : -1; });
+				var returned_results = here.options.default_sort(this.results);
+				if (Array.isArray(returned_results)) {
+					// If an array was returned, use that over the reference passed to the function
+					this.results = returned_results;
+				}
 			} else {
 				// sort by closest match
 				search = here.options.string_filter(search);
@@ -1021,7 +1035,7 @@
 		 * @return this
 		 */
 		this.all = function(unfiltered, sort_or_term) {
-			this.results = (unfiltered) ? this.data : this.data_filtered;
+			this.results = util.shallowCopy((unfiltered) ? this.data : this.data_filtered);
 			// Sort all by either function or search term (if nothing is provided, falls back to alphabetical)
 			this.sort_results_by(typeof sort_or_term === "undefined" ? "" : sort_or_term);
 			return this;
@@ -1053,7 +1067,7 @@
 		 * @return this
 		 */
 		this.clear_filters = function() {
-			this.data_filtered = this.data;
+			this.data_filtered = util.shallowCopy(this.data);
 			return this;
 		};
 
@@ -1112,7 +1126,7 @@
 
 			// lower case everything
 			item.__searchvalues = here.options.string_filter(tmp);
-			item.__keyvalue = here.options.string_filter(util.extractValue(item, here.options.key_value));
+			item.__keyvalue = ds.get_item_key(item);
 
 			return item;
 		};
@@ -1238,6 +1252,19 @@
 		};
 
 		/**
+		 * Sort full dataset
+		 * Provides a simple alphabetical sort that should be used when no search has been made.
+		 * While this can provide some odd results for numeric key_values, it is the default for
+		 * backwards compatibility.
+		 *
+		 * @param results - array of items that match the search result
+		 * @return ordered array of results
+		 */
+		ds.default_sort = function(results) {
+			return results.sort(function(a, b){ return (a.__keyvalue > b.__keyvalue) ? 1 : -1; });
+		};
+
+		/**
 		 * Calculate score
 		 *
 		 * @param result - A result to calculate a score for
@@ -1294,6 +1321,18 @@
 			"string_filter": ds.simplfy_strings,
 			"disable_occurrence_weighting": false,
 			"allow_partial_matches": true
+		};
+
+		/**
+		 * Get item key
+		 * Retrieves the item key for a given item based on the key_value option.
+		 * Supports nesting and non-string keys.
+		 *
+		 * @param item
+		 * @return key value
+		 */
+		ds.get_item_key = function(item) {
+			return here.options.string_filter(util.extractValue(item, here.options.key_value));
 		};
 
 		// Setup data store
@@ -1469,6 +1508,11 @@
 		return n;
 	};
 
+	// Shallow copy an array or array-like object
+	util.shallowCopy = function(array) {
+		return Array.prototype.slice.call(array);
+	};
+
 	// Define public object methods.
 	var QuickspotPublic = {};
 
@@ -1538,6 +1582,19 @@ if (!("forEach" in Array.prototype)) {
 				action.call(that, this[i], i, this);
 			}
 		}
+	};
+}
+
+// slice shim from
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice#Streamlining_cross-browser_behavior
+// eslint-disable-next-line
+!function(){"use strict";var t=Array.prototype.slice;try{t.call(document.documentElement)}catch(r){Array.prototype.slice=function(r,e){if(e=void 0!==e?e:this.length,"[object Array]"===Object.prototype.toString.call(this))return t.call(this,r,e);var i,a,c=[],o=this.length,n=r||0;n=n>=0?n:Math.max(0,o+n);var h="number"==typeof e?Math.min(e,o):o;if(e<0&&(h=o+e),(a=h-n)>0)if(c=new Array(a),this.charAt)for(i=0;i<a;i++)c[i]=this.charAt(n+i);else for(i=0;i<a;i++)c[i]=this[n+i];return c}}}();
+
+// isArray shim from
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/isArray#Polyfill
+if (!Array.isArray) {
+	Array.isArray = function(arg) {
+		return Object.prototype.toString.call(arg) === "[object Array]";
 	};
 }
 

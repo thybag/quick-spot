@@ -1,6 +1,6 @@
 {
   "name": "quick-spot",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Quickspot is a fast, flexible JSON powered in-memory search.",
   "main": "quickspot.js",
   "files": [
@@ -31,5 +31,8 @@
     "grunt-contrib-uglify": "^1.0.1",
     "grunt-contrib-watch": "^1.0.0",
     "grunt-eslint": "^18.0.0"
+  },
+  "dependencies": {
+    "grunt-cli": "^1.2.0"
   }
 }
