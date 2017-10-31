@@ -66,6 +66,7 @@ In addition you can also extend quickspots base functionality significantly thro
 * `options.loaded(datastore)` - Callback is fired each time a data store has been loaded
 * `options.ready(quickspot_instance)` - Callback fired when quick-spot is fully up & running
 * `options.error(http_status, http_text)` - Callback fired on AJAX failure
+* `options.default_sort` - Callback is run after any blank search or call to `datastore.store.all()`. Function is given the results array to be sorted. You may mutate the array given or provide a return value to set the final results.
 * `options.results_header` - Header for results container (can be Node/ID/raw html or callback returning one of the previous)
 * `options.results_footer` - Footer for results container (can be Node/ID/raw html or callback returning one of the previous)
 
