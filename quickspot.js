@@ -887,6 +887,9 @@
 		// private methods
 		var ds = {};
 
+		// Order for maintain_order
+		var data_order;
+
 		/**
 		 * Create
 		 *
@@ -940,6 +943,11 @@
 				data = tmp;
 			}
 
+			// Maintain the given order of the data (not guaranteed if data was an object)
+			if (typeof here.options.maintain_order === 'string') {
+				data_order = data.map(ds.get_item_key);
+			}
+
 			var attrs = (typeof here.options.search_on !== "undefined") ? here.options.search_on : false;
 
 			// Loop through searchable items, adding all values that will need to be searched upon in to a
@@ -990,6 +998,10 @@
 			if (typeof search === "function") {
 				// sort by a custom function?
 				this.results.sort(search);
+			} else if (here.options.maintain_order === "always" ||
+				here.options.maintain_order === "initial" && search === "") {
+				// Use the order of the original data
+				ds.sort_by_order(this.results);
 			} else if (search === "") {
 				// Use alphabetical sorting if no search term was provided.
 				this.results.sort(function(a, b){ return (a.__keyvalue > b.__keyvalue) ? 1 : -1; });
@@ -1112,7 +1124,7 @@
 
 			// lower case everything
 			item.__searchvalues = here.options.string_filter(tmp);
-			item.__keyvalue = here.options.string_filter(util.extractValue(item, here.options.key_value));
+			item.__keyvalue = ds.get_item_key(item);
 
 			return item;
 		};
@@ -1238,6 +1250,21 @@
 		};
 
 		/**
+		 * Sort results by order
+		 * Order results by the original order the data was given in.
+		 *
+		 * @param results - array of itesm that match the search result
+		 * @return ordered array of results
+		 */
+		ds.sort_by_order = function(results) {
+			return results.sort(function(a, b) {
+				a = data_order.indexOf(a.__keyvalue);
+				b = data_order.indexOf(b.__keyvalue);
+				return a - b;
+			})
+		};
+
+		/**
 		 * Calculate score
 		 *
 		 * @param result - A result to calculate a score for
@@ -1295,6 +1322,18 @@
 			"disable_occurrence_weighting": false,
 			"allow_partial_matches": true
 		};
+
+		/**
+		 * Get item key
+		 * Retrieves the item key for a given item based on the key_value option.
+		 * Supports nesting and non-string keys.
+		 *
+		 * @param item
+		 * @return key value
+		 */
+		ds.get_item_key = function(item) {
+			return here.options.string_filter(util.extractValue(item, here.options.key_value));
+		}
 
 		// Setup data store
 		ds.create(data, options);
@@ -1539,6 +1578,12 @@ if (!("forEach" in Array.prototype)) {
 			}
 		}
 	};
+}
+
+// map shim from
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map#Polyfill
+if (!Array.prototype.map) {
+	Array.prototype.map=function(t,r){"use strict";var n,o,i,e,l,c,s;if(null===this||void 0===this)throw new TypeError(" this is null or not defined");if(c=Object(this),s=c.length>>>0,"[object Function]"!=={}.toString.call(t))throw new TypeError(t+" is not a function");for(r&&(n=r),o=new Array(s),i=0;i<s;)i in c&&(e=c[i],l=t.call(n,e,i,c),o[i]=l),i++;return o};
 }
 
 // trim - IE :(

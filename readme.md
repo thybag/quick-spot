@@ -48,6 +48,7 @@ QuickSpot implements a number of advanced methods which can be used to further c
 * `options.allow_partial_matches` - Filter results by individual words rather than by the full phrase. This is enabled by default. (true|false)
 * `options.show_all_on_blank_search` - True|false - Rather than hiding when no search terms are entered, this will instead cause quickspot to list all valid results (results that are not filtered out). False by default.
 * `options.events` - Quick method of binding up events. Takes an object of event name, callback pairs.
+* `options.maintain_order` - `'always'`|`'initial'` - Maintain the order of the data as it was given when showing full data set (using `'initial'`) or for all results listings (using `'always'`)
 
 In addition you can also extend quickspots base functionality significantly through the use of the following callbacks.
 
