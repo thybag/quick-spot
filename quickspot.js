@@ -1144,7 +1144,9 @@
 			// if we only want to search some
 			if (search_fields) {
 				for (c in search_fields) {
-					tmp += " " + util.extractValue(item, search_fields[c]);
+					if (search_fields.hasOwnProperty(c)) {
+						tmp += " " + util.extractValue(item, search_fields[c]);
+					}
 				}
 				return tmp;
 			}
