@@ -11,7 +11,7 @@ module.exports = function (grunt) {
 		eslint: {
 			all: {
 				options: {
-					configFile: "test/_eslint.json"
+					overrideConfigFile: "test/_eslint.json"
 				},
 				src: ["quickspot.js"]
 			}
